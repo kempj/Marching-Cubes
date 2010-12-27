@@ -22,7 +22,7 @@ struct vertex{
 
 void march(float vert[], double X, double Y,  ofstream &tris);
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris);
-void drawSquare(vertex current, vertex v[], float vert[], ofstream &tris);
+void drawQuad(vertex v[], ofstream &tris);
 void toFile(vertex midpoints[],  ofstream &tris);
 void findNeighbors(int neighbors[], int i);
 void vertexToCoord(float vert[], vertex v, int i, double X, double Y);
@@ -164,7 +164,6 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 	current.Z = currentZ;
 	current.color = vert[0];
 	vertex v[3]; //where the 3 vertices are stored before their midpoints are calculated
-	//vertex midpoints[3];//where the midpoints are stored before they are written to file//moved to drawTris()
 
 	for(i = 0; i < 8;i++){
 		if(vert[i] != -1)
@@ -192,16 +191,8 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		vertexToCoord(vert, current,i,X,Y);
 
-		for( int c = 0; c < 3; c++) {
+		for( int c = 0; c < 3; c++)
 			vertexToCoord(vert, v[c],neighbors[c],X,Y);
-		}
-
-		//for(int c = 0; c < 3; c++) {
-		//	midpoints[c].X = (current.X + v[c].X) / 2;
-		//	midpoints[c].Y = (current.Y + v[c].Y) / 2;
-		//	midpoints[c].Z = (current.Z + v[c].Z) / 2;
-		//	midpoints->color = vert[i];
-		//}
 		drawTris(current, v, vert ,tris);
 
 	} else if(count == 2 || count == 6){
@@ -277,40 +268,21 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				neighborCount = -1;
 				break;
 			}
-
 			for(int d = 0; d < 3; d++){
 				if(neighbors[c] == neighbors2[d])
 					neighborCount++;
 			}
 		}
-
 		if (neighborCount != -1){
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
-
-			for( int c = 0; c < 3; c++) {
+			for( int c = 0; c < 3; c++) 
 				vertexToCoord(vert, v[c],neighbors[c],X,Y);
-			}
-			//for(int c = 0; c < 3; c++) {
-			//	midpoints[c].X = (current.X + v[c].X) / 2;
-			//	midpoints[c].Y = (current.Y + v[c].Y) / 2;
-			//	midpoints[c].Z = (current.Z + v[c].Z) / 2;
-			//	midpoints[c].color = vert[i];
-			//}
-
 			drawTris(current, v, vert, tris);
 
-			for( int c = 0; c < 3; c++) {
+			for( int c = 0; c < 3; c++)
 				vertexToCoord(vert, v[c],neighbors2[c],X,Y);
-			}
-			//for(int c = 0; c < 3; c++) {
-			//	midpoints[c].X = (current2.X + v[c].X) / 2;
-			//	midpoints[c].Y = (current2.Y + v[c].Y) / 2;
-			//	midpoints[c].Z = (current2.Z + v[c].Z) / 2;
-			//	midpoints->color = vert[i];
-			//}
 			drawTris(current, v, vert,tris);
-
 		}
 	}
 	else if(count == 3 || count == 5){
@@ -369,15 +341,9 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 			for(int j = 0; j < 3; j++) {//for each triangle
 				//for(int k = 0; k < 3; k++) { //for each vertex
-					//midpoints[k].X = (current.X + v[j][k].X) / 2;
-					//midpoints[k].Y = (current.Y + v[j][k].Y) / 2;
-					//midpoints[k].Z = (current.Z + v[j][k].Z) / 2;
-					//midpoints[k].color = vert[i];
 				drawTris(current, v[j], vert,tris);
-				//}
 			}
 			break;
-
 		}
 
 	} else if(count == 4){
@@ -479,13 +445,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 
 			for(int j = 0; j < 4; j++) {//for each triangle
-				//for(int k = 0; k < 3; k++) { //for each vertex
-					//midpoints[k].X = (current.X + v[j][k].X) / 2;
-					//midpoints[k].Y = (current.Y + v[j][k].Y) / 2;
-					//midpoints[k].Z = (current.Z + v[j][k].Z) / 2;
-					//midpoints[k].color = vert[i];
 				drawTris(current, v[j], vert, tris);
-				//}
 			}
 			break;
 		case 24:
@@ -507,8 +467,37 @@ void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
 	toFile(midpoints, tris);	
 }
 
-void drawSquare(vertex current, vertex v[], float vert[], ofstream &tris){
-	
+void drawQuad(vertex v[], ofstream &tris){
+	vertex triangle[3];
+	for(int i = 0; i < 3; i++)
+		triangle[i] = v[i];
+	toFile(triangle, tris);
+
+	//Assuming that all points are on one plane
+	vertex slope1, slope2;
+	slope1.X = abs(v[0].X - v[3].X);
+	slope1.Y = abs(v[0].Y - v[3].Y);
+	slope1.Z = abs(v[0].Z - v[3].Z);
+	slope2.X = abs(v[1].X - v[2].X);
+	slope2.Y = abs(v[1].Y - v[2].Y);
+	slope2.Z = abs(v[1].Z - v[2].Z);
+	//If Line 1-4 is perpendicular to line 2-3, then case 2 occurs
+
+	//if(slope1.X  < 1 && slope2.X > 1 || slope2.X  < 1 && slope1.X > 1) {
+		//toFile(
+	//}
+	//simpler method: if 1-4 is parallel to 2-3, then case 1 occurs
+	if(slope1.X - slope2.X < epsilon && slope1.Y - slope2.Y < epsilon  && slope1.Z - slope2.Z < epsilon ){
+		triangle[0] = v[0];
+		triangle[1] = v[2];
+		triangle[2] = v[3];
+	} else {
+		triangle[0] = v[1];
+		triangle[1] = v[2];
+		triangle[2] = v[3];
+	}
+	toFile(triangle,tris);
+
 }
 
 void toFile(vertex midpoints[],  ofstream &tris) {
@@ -518,16 +507,13 @@ void toFile(vertex midpoints[],  ofstream &tris) {
 		if(abs(midpoints[i].X - midpoints[(i+1)%3].X) < epsilon && abs(midpoints[i].Y - midpoints[(i+1)%3].Y) < epsilon && abs(midpoints[i].Z - midpoints[(i+1)%3].Z) < epsilon)
 			count++;
 	}
-
 	if(count > 1) {
 		//cout << "Triangle has no area\n";
 		return;
 	}
-
 	for(int i = 0; i < 3; i++) {
 		tris << midpoints[i].X << " " << midpoints[i].Y << " " << midpoints[i].Z << " " << midpoints[i].color << endl;
 	}
-
 }
 
 void findNeighbors(int neighbors[], int i) {
