@@ -246,23 +246,22 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 					squareVerts[d].Y = (current2.Y + v[d].Y) / 2;
 					squareVerts[d].Z = (current2.Z + v[d].Z) / 2;
 				}
+				drawQuad(squareVerts, tris);
 				//drawTris(squareVerts[0],squareVerts[1],squareVerts[2],tris);
-				vertex tempVert[3];
-				tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[1]; tempVert[2] = squareVerts[2];
-				toFile(tempVert,tris);
-				//drawSquare(current, v, vert, tris);
-				if(squareVerts[0].X == squareVerts[2].X ||
-					squareVerts[0].Y == squareVerts[2].Y ||
-					squareVerts[0].Z == squareVerts[2].Z) {
-						tempVert[0] = squareVerts[1]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
-						toFile(tempVert,tris);
-						//drawTris(squareVerts[1],squareVerts[2],squareVerts[3],tris);
-				}
-				else {
-					tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
-					toFile(tempVert,tris);
-					//drawTris(squareVerts[0],squareVerts[2],squareVerts[3],tris);
-				}
+				//vertex tempVert[3];
+				//tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[1]; tempVert[2] = squareVerts[2];
+				//toFile(tempVert,tris);
+				////drawSquare(current, v, vert, tris);
+				//if(squareVerts[0].X == squareVerts[2].X ||
+				//	squareVerts[0].Y == squareVerts[2].Y ||
+				//	squareVerts[0].Z == squareVerts[2].Z) {
+				//		tempVert[0] = squareVerts[1]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
+				//		toFile(tempVert,tris);
+				//}
+				//else {
+				//	tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
+				//	toFile(tempVert,tris);
+				//}
 
 				c = 3;
 				neighborCount = -1;
@@ -404,19 +403,8 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				midpoints[c].Z = (current.Z + v[0][c].Z) / 2;
 				midpoints[c].color = vert[i];
 			}
-
-			//make drawSquare()?
-			drawTris(current, v[0], vert, tris);
-			if((midpoints[0].X == midpoints[2].X && midpoints[0].Y == midpoints[2].Y) ||
-				(midpoints[0].Z == midpoints[2].Z && midpoints[0].Y == midpoints[2].Y) ||
-				(midpoints[0].X == midpoints[2].X && midpoints[0].Z == midpoints[2].Z) ){//not 100% on this. need to see how they are ordered
-					toFile(midpoints,tris);
-			}
-			else {
-				toFile(midpoints,tris);
-			}
+			drawQuad(midpoints,tris);
 			break;
-
 		case 114:
 			//case 9
 			//determine if it has one point that has the other 3 vertices as it's neighbors
@@ -483,9 +471,6 @@ void drawQuad(vertex v[], ofstream &tris){
 	slope2.Z = abs(v[1].Z - v[2].Z);
 	//If Line 1-4 is perpendicular to line 2-3, then case 2 occurs
 
-	//if(slope1.X  < 1 && slope2.X > 1 || slope2.X  < 1 && slope1.X > 1) {
-		//toFile(
-	//}
 	//simpler method: if 1-4 is parallel to 2-3, then case 1 occurs
 	if(slope1.X - slope2.X < epsilon && slope1.Y - slope2.Y < epsilon  && slope1.Z - slope2.Z < epsilon ){
 		triangle[0] = v[0];
