@@ -23,6 +23,7 @@ struct vertex{
 void march(float vert[], double X, double Y,  ofstream &tris);
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris);
 void drawQuad(vertex v[], ofstream &tris);
+void drawHex(vertex v[], ofstream &tris);
 void toFile(vertex midpoints[],  ofstream &tris);
 void findNeighbors(int neighbors[], int i);
 void vertexToCoord(float vert[], vertex v, int i, double X, double Y);
@@ -176,7 +177,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 	} else if(count == 1 || count == 7){
 
-		//cout << "Count = 1\n";
+		cout << "Count = 1\n";
 		//case 1
 		i = 0;
 		if(count == 1){
@@ -285,7 +286,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		}
 	}
 	else if(count == 3 || count == 5){
-		//cout << "Count = 3\n";
+		cout << "Count = 3\n";
 		int index[] = {0,0,0};//stores the value of the index in vert of the vertices.
 		int neighbors[3][3];//for each corresponding vertex in index, it's neighbors are put in here.
 		//vertex current[3];
@@ -346,10 +347,16 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		}
 
 	} else if(count == 4){
-		//cout << "Count = 4\n";
+		cout << "Count = 4\n";
 		int index[] = {0,0,0,0};
 		int neighbors[4][3];
 		vertex midpoints[4], v[4][3]; //current[4]
+		int k = 0;
+		int flag = 0;
+		int midIndex = 0;
+		
+		int neighborAddress = -1;//index[neighborAddress];
+		int secondIndex[2];//for second square
 
 		i = 0;
 		for(int j = 0; j < 4; j++) {
@@ -397,25 +404,111 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 					}
 				}
 			}
-			for(int c = 0; c < 4; c++) {
-				midpoints[c].X = (current.X + v[0][c].X) / 2;
-				midpoints[c].Y = (current.Y + v[0][c].Y) / 2;
-				midpoints[c].Z = (current.Z + v[0][c].Z) / 2;
-				midpoints[c].color = vert[i];
+			//I think this was correct
+			for( int i = 0; i < 4; i++) {
+				//cycle through currents
+				vertexToCoord(vert, current, index[i],X,Y);//double Check this
+ 				for(int c = 0; c < 4; c++) {
+					midpoints[c].X = (current.X + v[0][c].X) / 2;
+					midpoints[c].Y = (current.Y + v[0][c].Y) / 2;
+					midpoints[c].Z = (current.Z + v[0][c].Z) / 2;
+					midpoints[c].color = vert[index[i]];//DCthis
+				}
 			}
+
 			drawQuad(midpoints,tris);
 			break;
 		case 114:
 			//case 9
 			//determine if it has one point that has the other 3 vertices as it's neighbors
 
+			//drawHex
+			//take first midpoint, find other 2 midpoints that have either same X, Y or Z coordinates(these will be used as the corners of the square.
+			//
+
 			break;
 		case 4:
 			//case 10
+			//Notes: Only using the first array in v, or as I need it.
+			//vertex midpoints[4];
+			
+			vertex N1;N1.X = -1;
 			//cycle through vert until a vertex has been found.
-			//Then find neighbor.
-			//DrawSquare
-			//repeat for next vertex in vert.
+			//int neighborAddress = -1;//index[neighborAddress];
+			//int secondIndex[2];//for second square
+			vertexToCoord(vert, current, index[0],X,Y);
+			for(int j = 0; j < 3; j++) {//for each neighbor of the first vertex
+				for( k = 0; k < 4; k++) {
+					if(neighbors[0][j] == index[k]) {//if neighbor is an included vertex
+						neighborAddress = k;
+						//Now to setup for the second square
+						for(int l = 1; l < 4; l++) {
+							if(index[l] != neighbors[0][j]) {//index[j]) {
+								secondIndex[0] = l;//index[l];
+								break;
+							}
+						}
+						for(int l = 1; l < 4; l++) {
+							if(index[l] != index[j] && index[l] != secondIndex[0]) {
+								secondIndex[1] = l;//index[l];
+								break;
+							}
+						}
+						//break;
+					}
+				}
+				if(k == 4){//this neighbor is not an included vertex
+					flag = 0;
+					if(N1.X != -1)
+						flag = 1;
+					vertexToCoord(vert, N1,neighbors[0][j],X,Y);
+					midpoints[flag].X = (current.X + N1.X) / 2;
+					midpoints[flag].Y = (current.Y + N1.Y) / 2;
+					midpoints[flag].Z = (current.Z + N1.Z) / 2;
+					midpoints[flag].color = vert[index[0]];//Need better way to get color
+				}
+			}
+
+			//Now to add the 2 midpoints for the second vertex of the first square.
+			N1.X = -1;
+			flag = 0;
+			vertexToCoord(vert, current, index[neighborAddress],X,Y);
+			for(int j = 0; j < 3; j++) {//for each neighbor
+				if(neighbors[neighborAddress][j] != index[0]) {
+					vertexToCoord(vert, N1,neighbors[0][j],X,Y);
+
+					if(j == 2) {
+						midpoints[2+((flag+1)%2)].X = (current.X + N1.X) / 2;
+						midpoints[2+((flag+1)%2)].Y = (current.Y + N1.Y) / 2;
+						midpoints[2+((flag+1)%2)].Z = (current.Z + N1.Z) / 2;
+						midpoints[2+((flag+1)%2)].color = vert[index[neighborAddress]];//Need better way to get color
+					} else {
+						flag = j;
+						midpoints[2+j].X = (current.X + N1.X) / 2;
+						midpoints[2+j].Y = (current.Y + N1.Y) / 2;
+						midpoints[2+j].Z = (current.Z + N1.Z) / 2;
+						midpoints[2+j].color = vert[index[neighborAddress]];//Need better way to get color
+					}
+				}
+			}
+			drawQuad(midpoints, tris);
+
+			midIndex = 0;
+			//second square
+			for(int j = 0; j < 2; j++) {
+				vertexToCoord(vert, current, index[secondIndex[j]],X,Y);
+				for(int k = 0; k < 3; k++) { //for each neighbor 
+					flag = 0;
+					if(neighbors[secondIndex[j]][k] != secondIndex[(j+1)%2]) {
+						vertexToCoord(vert, N1, neighbors[secondIndex[j]][k],X,Y);
+						midpoints[midIndex].X = (current.X + N1.X) / 2;
+						midpoints[midIndex].Y = (current.Y + N1.Y) / 2;
+						midpoints[midIndex].Z = (current.Z + N1.Z) / 2;
+						midpoints[midIndex].color = vert[index[secondIndex[j]]];//Need better way to get color
+						midIndex++;
+					}
+				}
+			}
 			break;
 		case 13:
 			//case 12
@@ -442,6 +535,8 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			break;
 		}
 	}
+	else
+		cout << "No cases selected." << endl;
 }
 
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
@@ -483,6 +578,12 @@ void drawQuad(vertex v[], ofstream &tris){
 	}
 	toFile(triangle,tris);
 
+}
+
+void drawHex(vertex v[], ofstream &tris) {
+	//drawHex
+	//take first midpoint, find other 2 midpoints that have either same X, Y or Z coordinates(these will be used as the corners of the square.
+	//
 }
 
 void toFile(vertex midpoints[],  ofstream &tris) {
