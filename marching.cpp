@@ -23,11 +23,11 @@ struct vertex{
 void march(float vert[], double X, double Y,  ofstream &tris);
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris);
 void drawQuad(vertex v[], ofstream &tris);
+void drawPent(vertex v[], ofstream &tris);
 void drawHex(vertex v[], ofstream &tris);
 void toFile(vertex midpoints[],  ofstream &tris);
 void findNeighbors(int neighbors[], int i);
 void vertexToCoord(float vert[], vertex v, int i, double X, double Y);
-
 
 int main(int argc, char *argv[])
 {
@@ -292,6 +292,8 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		//vertex current[3];
 		vertex midpoints[3];//The midpoints that form the triangles to be written.
 		vertex v[3][3];//where the 3 vertices are stored before their midpoints are calculated, for each vertex
+		vertex N1;
+		int midIndex = 0;
 
 		i = 0;
 		for(int j = 0; j < 3; j++) {
@@ -323,6 +325,25 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		switch(sumCount) {
 		case 13: //case 5
+			vertex pentMid[5];
+			midIndex = 0;
+			//find the midpoints
+			for(int j = 0; j < 3; j++) {
+			vertexToCoord(vert, current, index[j],X,Y);
+				for(int k = 0; k < 3; k++) {
+					for(int l = 0; l < 3; l++) {
+						if(neighbors[j][k] != index[i]) {
+							vertexToCoord(vert, N1, neighbors[j][k],X,Y);
+							pentMid[midIndex].X = (current.X + N1.X) / 2;
+							pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
+							pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
+							pentMid[midIndex].color = vert[neighbors[j][k]];//DCthis
+						}
+					}
+				}
+			}
+			drawPent(pentMid,tris);
+			//
 			break;
 		case 2://case 6
 
@@ -354,7 +375,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		int k = 0;
 		int flag = 0;
 		int midIndex = 0;
-		
+		vertex N1;
 		int neighborAddress = -1;//index[neighborAddress];
 		int secondIndex[2];//for second square
 
@@ -420,19 +441,35 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			break;
 		case 114:
 			//case 9
-			//determine if it has one point that has the other 3 vertices as it's neighbors
-
-			//drawHex
-			//take first midpoint, find other 2 midpoints that have either same X, Y or Z coordinates(these will be used as the corners of the square.
-			//
-
+			midIndex = 0;
+			vertex hexMidpoints[6];
+			
+			for(int j = 0; j < 4; j++) {
+				vertexToCoord(vert, current, index[j],X,Y);
+				for(int k = 0; k < 3; k++) {
+					for(int l = 0; l < 4; l++) {
+						if(neighbors[j][k] != index[l]){
+							//find midpoint
+							vertexToCoord(vert,N1, neighbors[j][k],X,Y);
+							//pop midpoint
+							hexMidpoints[midIndex].X = (current.X + N1.X) / 2;
+							hexMidpoints[midIndex].Y = (current.Y + N1.Y) / 2;
+							hexMidpoints[midIndex].Z = (current.Z + N1.Z) / 2;
+							hexMidpoints[midIndex].color = vert[index[i]];//DCthis
+							midIndex++;
+						}
+					}
+				}
+			}
+			drawHex(hexMidpoints, tris);
 			break;
 		case 4:
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
 			//vertex midpoints[4];
 			
-			vertex N1;N1.X = -1;
+			//vertex N1;
+			N1.X = -1;
 			//cycle through vert until a vertex has been found.
 			//int neighborAddress = -1;//index[neighborAddress];
 			//int secondIndex[2];//for second square
@@ -540,6 +577,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 }
 
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
+	///This draws a triangle where one vertex has no neighbors
 	vertex midpoints[3];
 	for(int i = 0; i < 3; i++) { //for each vertex
 		midpoints[i].X = (current.X + v[i].X) / 2;
@@ -579,11 +617,125 @@ void drawQuad(vertex v[], ofstream &tris){
 	toFile(triangle,tris);
 
 }
+void drawPent(vertex v[], ofstream &tris) {
+	//find 3 on plane(parallel to X Y or Z axis) and draw triangle.
+	vertex planar[3];
+	for(int i = 0; i < 5; i++) {
+		for(int j = 0; j < 5; j++) {
+			if(i == j)
+				break;
+			for(int k = 0; k < 5; k++) {
+				if(i == k)
+					break;
+				if((v[i].X == v[j].X && v[i].X == v[k].X) ||
+				   (v[i].Y == v[j].Y && v[i].Y == v[k].Y) ||
+				   (v[i].Z == v[j].X && v[i].Z == v[k].Z) ) {
+					planar[0] = v[i];
+					planar[1] = v[j];
+					planar[2] = v[k];
+				}
+			}
+		}
+	}
+	toFile(planar, tris);
+
+	//randomly choose one of the remaining 2 vertices and find closest point.
+	vertex R1, R1closest;
+	double dist = 0;
+	int flag = 0;
+	for(int i = 0; i < 5; i++){
+		flag  =  0;
+		for(int j = 0; j < 3; j++) {
+			if(v[i].X == planar[j].X && v[i].Y == planar[j].Y)
+				flag = 1;
+		}
+		if( flag == 0)
+			R1 = v[i];
+	}
+	
+	dist = sqrt(pow(R1.X - planar[0].X,2) + pow(R1.Y - planar[0].Y,2) + pow(R1.Z - planar[0].Z,2));
+	R1closest = planar[0];
+	
+	for(int i = 1; i < 3; i++) {
+		if(sqrt(pow(R1.X - planar[i].X,2) + pow(R1.Y - planar[i].Y,2) + pow(R1.Z - planar[i].Z,2)) < dist) {
+			dist = sqrt(pow(R1.X - planar[i].X,2) + pow(R1.Y - planar[i].Y,2) + pow(R1.Z - planar[i].Z,2));
+			R1closest = planar[i];
+		}
+	}
+	
+	//find the closest of the planar 3 vertices to the remaining vertex.
+	vertex R2, R2closest;
+	
+	for(int i = 0; i < 5; i++){
+		flag  =  0;
+		for(int j = 0; j < 3; j++) {
+			if((v[i].X == planar[j].X && v[i].Y == planar[j].Y) || (v[i].X == R1.X &&  v[i].Y == R1.Y))
+				flag = 1;
+		}
+		if( flag == 0)
+			R2 = v[i];
+	}
+
+	//draw triangle between R1 R1closest and R2closest
+	vertex tmpTri[3];
+	tmpTri[0] = R1;
+	tmpTri[1] = R1closest;
+	tmpTri[3] = R2closest;
+	toFile(tmpTri, tris);
+	//draw triangle between R2 R2closest and R1
+	tmpTri[0] = R2;
+	tmpTri[1] = R2closest;
+	tmpTri[3] = R1;
+	toFile(tmpTri, tris);
+}
 
 void drawHex(vertex v[], ofstream &tris) {
 	//drawHex
-	//take first midpoint, find other 2 midpoints that have either same X, Y or Z coordinates(these will be used as the corners of the square.
-	//
+	vertex set1[3];//temp set
+	vertex square[4];
+	vertex triangle1[3];
+	vertex triangle2[3];
+	int index = 0;
+
+	//take first midpoint, find other 3 midpoints that have either same X, Y or Z coordinates
+	triangle1[0] = v[0];
+	for(int i = 1; i < 6; i++) {
+		if(v[0].X == v[i].X || v[0].Y == v[i].Y || v[0].Z == v[i].Z) {//TODO: might need to use epsilon here
+			set1[index] = v[i];
+			index++;
+		}
+	}
+	index = 0;
+	double maxDist = 0;
+	//distinguish between the adjacent midpoints, and the far midpoint using distance.
+	for(int i = 0; i < 3; i++) {
+		maxDist = max(maxDist, pow((sqrt(v[0].X - set1[i].X) + sqrt(v[0].Y - set1[i].Y) + sqrt(v[0].Z - set1[i].Z)), 2));
+	}
+	for(int i = 0; i < 3; i++) {
+		if (maxDist == pow((sqrt(v[0].X - set1[i].X) + sqrt(v[0].Y - set1[i].Y) + sqrt(v[0].Z - set1[i].Z)), 2)) {
+			triangle2[0] = set1[i];
+		} else {
+			triangle1[index+1] = set1[i];
+			square[index] = set1[i];
+			index++;
+		}
+	}
+	//find the 2 midpoints not included above
+	int flag = 0;
+	index = 0;
+	for(int i = 1; i < 6; i++) {
+		for(int j = 0; j < 3; j++) {
+			if(v[i].X == set1[j].X && v[i].Y == set1[j].Y && v[i].Z == set1[j].Z) {
+				flag = 1;
+				break;
+			}
+		}
+		if(flag == 0) {
+			triangle2[index+1] = v[i];
+			square[index+2] = v[i];
+			index++;
+		}
+	}//I think this is complete, double check, tired when completed.//Doublechecked.
 }
 
 void toFile(vertex midpoints[],  ofstream &tris) {
