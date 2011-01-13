@@ -248,21 +248,6 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 					squareVerts[d].Z = (current2.Z + v[d].Z) / 2;
 				}
 				drawQuad(squareVerts, tris);
-				//drawTris(squareVerts[0],squareVerts[1],squareVerts[2],tris);
-				//vertex tempVert[3];
-				//tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[1]; tempVert[2] = squareVerts[2];
-				//toFile(tempVert,tris);
-				////drawSquare(current, v, vert, tris);
-				//if(squareVerts[0].X == squareVerts[2].X ||
-				//	squareVerts[0].Y == squareVerts[2].Y ||
-				//	squareVerts[0].Z == squareVerts[2].Z) {
-				//		tempVert[0] = squareVerts[1]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
-				//		toFile(tempVert,tris);
-				//}
-				//else {
-				//	tempVert[0] = squareVerts[0]; tempVert[1] = squareVerts[2]; tempVert[2] = squareVerts[3];
-				//	toFile(tempVert,tris);
-				//}
 
 				c = 3;
 				neighborCount = -1;
@@ -325,46 +310,93 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		switch(sumCount) {
 		case 13: //case 5
-			vertex pentMid[5];
-			midIndex = 0;
-			//find the midpoints
-			for(int j = 0; j < 3; j++) {
-			vertexToCoord(vert, current, index[j],X,Y);
-				for(int k = 0; k < 3; k++) {
-					for(int l = 0; l < 3; l++) {
-						if(neighbors[j][k] != index[i]) {
-							vertexToCoord(vert, N1, neighbors[j][k],X,Y);
-							pentMid[midIndex].X = (current.X + N1.X) / 2;
-							pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
-							pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
-							pentMid[midIndex].color = vert[neighbors[j][k]];//DCthis
+			{
+				vertex pentMid[5];
+				midIndex = 0;
+				//find the midpoints
+				for(int j = 0; j < 3; j++) {
+				vertexToCoord(vert, current, index[j],X,Y);
+					for(int k = 0; k < 3; k++) {
+						for(int l = 0; l < 3; l++) {
+							if(neighbors[j][k] != index[i]) {
+								vertexToCoord(vert, N1, neighbors[j][k],X,Y);
+								pentMid[midIndex].X = (current.X + N1.X) / 2;
+								pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
+								pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
+								pentMid[midIndex].color = vert[neighbors[j][k]];//DCthis
+							}
 						}
 					}
 				}
+				drawPent(pentMid,tris);
+				//
+				break;
 			}
-			drawPent(pentMid,tris);
-			//
-			break;
-		case 2://case 6
-
-			//draw triangle
-
-			//draw square
-
-			break;
-		case 0:	//case7 (no neighbors)
-
-			for(int j = 0; j < 3; j++) { //for each vertex
-				for(int k = 0; k < 3; k++) {  //for each neighbor
-					vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
+		case 2: //case 6
+			{
+				//draw triangle
+				int ssq[2];
+				int midIndex = 0;
+				vertex midSQ[4];
+				vertex N1;
+				for(int j = 0; j < 3; j++) {
+					for(int k = 0; k < 3; k++) {
+						for(int l = 0; l < 3; l++) {
+							if(neighbors[j][k] == index[l]){
+								ssq[0] = j;
+								ssq[1] = l;
+								//vertexToCoord(vert,ssq[0],index[j],X,Y);
+								//vertexToCoord(vert,ssq[1],index[i],X,Y);
+							}
+						}
+					}
 				}
-			}
 
-			for(int j = 0; j < 3; j++) {//for each triangle
-				//for(int k = 0; k < 3; k++) { //for each vertex
-				drawTris(current, v[j], vert,tris);
+				for(int j = 0; j < 2; j++) {//for each vertex
+					vertexToCoord(vert,current,index[ssq[j]],X,Y);
+					for(int k = 0; k < 3; k++) { //for each neighbor
+						if(neighbors[ssq[j]][k] != index[(ssq[j] + 1)%2]){//If the neighbor is not the other vertex
+							vertexToCoord(vert,N1,neighbors[ssq[j]][k],X,Y);
+							midSQ[midIndex].X = (current.X + N1.X) / 2;
+							midSQ[midIndex].Y = (current.Y + N1.Y) / 2;
+							midSQ[midIndex].Z = (current.Z + N1.Z) / 2;
+							midSQ[midIndex].color = vert[neighbors[ssq[j]][k]];
+							midIndex++;
+						}
+					}
+				}
+
+				midIndex = 0;
+				drawQuad(midSQ, tris);
+
+				int tri;
+				for(int j = 0; j < 3; j++) {
+					if(j != ssq[0] && j != ssq[1])
+						tri = j;
+				}
+				vertex NV[3];
+				for(int j = 0; j < 3;j++) {
+					vertexToCoord(vert, NV[j], neighbors[tri][j], X, Y);
+				}
+				vertexToCoord(vert,current,index[tri],X,Y);
+				drawTris(current,NV,vert,tris);
+				
+				break;
 			}
-			break;
+		case 0:	//case7 (no neighbors)
+			{
+				for(int j = 0; j < 3; j++) { //for each vertex
+					for(int k = 0; k < 3; k++) {  //for each neighbor
+						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
+					}
+				}
+
+				for(int j = 0; j < 3; j++) {//for each triangle
+					//for(int k = 0; k < 3; k++) { //for each vertex
+					drawTris(current, v[j], vert,tris);
+				}
+				break;
+			}
 		}
 
 	} else if(count == 4){
@@ -548,10 +580,62 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 			break;
 		case 13:
-			//case 12
-			//detect one singleton and a path on 3
+			{
+				//case 12
+				int index2[3];
+				int neighbors2[3][3];
+				vertex current;
+				vertex NV[3];
+				int triVert;
+				int flag = 0;
+				int indexInc = 0;
+				for(int j = 0; j < 4; j++) {
+					for(int k = 0; k < 3; k++) {
+						//Need to find out which vertex is the singleton
+						for(int l = 0; l < 4; l++) {
+							if(neighbors[j][k] = index[l])
+								flag = 1;
+						}
+					}
+					//I need to put the unused 3 vertices and their neighbors into the new data structures.
+					if(flag == 1){
+						index2[indexInc] = index[j];
+						for(int k = 0; k < 3;k++)
+							 neighbors2[indexInc][k] = neighbors[j][k];
+						indexInc++;
+					} else {
+						triVert = j;
+					}
+				}
 
-			break;
+				for(int j = 0; j < 3;j++) {
+					vertexToCoord(vert, NV[j], neighbors[triVert][j], X, Y);
+				}
+				vertexToCoord(vert,current,index[triVert],X,Y);
+				drawTris(current,NV,vert,tris);
+
+			
+				vertex pentMid[5];
+				midIndex = 0;
+				//find the midpoints
+				for(int j = 0; j < 3; j++) {
+				vertexToCoord(vert, current, index2[j],X,Y);
+					for(int k = 0; k < 3; k++) {
+						for(int l = 0; l < 3; l++) {
+							if(neighbors2[j][k] != index2[i]) {
+								vertexToCoord(vert, N1, neighbors2[j][k],X,Y);
+								pentMid[midIndex].X = (current.X + N1.X) / 2;
+								pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
+								pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
+								pentMid[midIndex].color = vert[neighbors2[j][k]];//DCthis
+							}
+						}
+					}
+				}
+				drawPent(pentMid,tris);
+
+				break;
+			}
 		case 0:
 			//case 13
 			//if none of the other vertices are neighbors for the
@@ -690,7 +774,7 @@ void drawPent(vertex v[], ofstream &tris) {
 }
 
 void drawHex(vertex v[], ofstream &tris) {
-	//drawHex
+	//This assumes that all coordinates are on the same plane
 	vertex set1[3];//temp set
 	vertex square[4];
 	vertex triangle1[3];
