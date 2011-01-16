@@ -637,23 +637,68 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				break;
 			}
 		case 0:
-			//case 13
-			//if none of the other vertices are neighbors for the
+			{
+				//case 13
+				//if none of the other vertices are neighbors for the
 
-			for(int j = 0; j < 3; j++) { //for each vertex
-				for(int k = 0; k < 3; k++) {  //for each neighbor
-					vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
+				for(int j = 0; j < 3; j++) { //for each vertex
+					for(int k = 0; k < 3; k++) {  //for each neighbor
+						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
+					}
 				}
-			}
 
-			for(int j = 0; j < 4; j++) {//for each triangle
-				drawTris(current, v[j], vert, tris);
+				for(int j = 0; j < 4; j++) {//for each triangle
+					drawTris(current, v[j], vert, tris);
+				}
+				break;
 			}
-			break;
 		case 24:
-			//case 11/14
+			{
+				//case 11/14
+				int index2[4];
+				int neighbors2[4][3];
+				int nCount = 0;
+				//Order the index
+				//first index
+				for(int j = 0; j < 4; j++) {
+					for(int k = 0; k < 3;k++) {
+						for(int l = 0; l < 3;l++) {
+							if(neighbors[j][k] == index[l])
+								nCount++;
+						}
+					}
+					if(nCount == 1){
+						index2[0] = index[j];
+						for(int k = 0; k < 3; k++) {
+							neighbors2[0][k] = neighbors[j][k];
+						}
+						break;
+					}
+				}
+				//second and third vertex
+				for(int h = 1; h < 4;h++) {
+					for(int j = 0; j < 3; j++) {
+						for(int k = 0; k < 4; k++) {
+							if(neighbors2[h-1][j] == index[k]) {
+								if(h > 1) {
+									if(neighbors2[h-1][j] == index2[h-2])
+										break;
+								}
+								index2[h] = index[k];
+								for(int l = 0; l < 3; l++) {
+									neighbors2[h][l] = neighbors[k][l];
+								}
+								break;
+							}
+						}
+					}
+				}
+				
+				vertex triangle[4][3];
 
-			break;
+
+				break;
+			}
 		}
 	}
 	else
