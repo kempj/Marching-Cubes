@@ -27,7 +27,14 @@ void drawPent(vertex v[], ofstream &tris);
 void drawHex(vertex v[], ofstream &tris);
 void toFile(vertex midpoints[],  ofstream &tris);
 void findNeighbors(int neighbors[], int i);
-void vertexToCoord(float vert[], vertex v, int i, double X, double Y);
+void vertexToCoord(float vert[], vertex &v, int i, double X, double Y);
+
+float absolute(float t)
+{
+    if (t > 0)
+        return t;
+    else return (0-t);
+}
 
 int main(int argc, char *argv[])
 {
@@ -140,7 +147,7 @@ int main(int argc, char *argv[])
 		slice.close();
 		slice.clear();
 		cout << " loop " << i << ": ";
-		if(slice.is_open()) cout << "fail!";	
+		if(slice.is_open()) cout << "fail!";
 		sprintf(filename,"slices/%d.dat",i+3);
 		slice.open(filename);
 		if(slice.is_open())
@@ -174,10 +181,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 	if(count == 0 || count == 8){
 		//case 0: No triangles in this cube, draw nothing
 		//cout << "Count = 0\n";
-
+		//cout << "Case 0\n";
+		//tris<<"Case 0\n";
 	} else if(count == 1 || count == 7){
 
-		cout << "Count = 1\n";
+		//cout << "Case 1\n";
+		//tris<<"Case 1\n";
 		//case 1
 		i = 0;
 		if(count == 1){
@@ -191,13 +200,17 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		findNeighbors(neighbors, i);
 
 		vertexToCoord(vert, current,i,X,Y);
+        //cout<<current.X<<endl;
+        //cout<<current.Y<<endl;
+        //cout<<current.Z<<endl;
 
 		for( int c = 0; c < 3; c++)
 			vertexToCoord(vert, v[c],neighbors[c],X,Y);
+
 		drawTris(current, v, vert ,tris);
 
 	} else if(count == 2 || count == 6){
-		cout << "Count = 2\n";
+
 		int neighbors2[3];
 		vertex current2, squareVerts[4];
 		int i2 = 0;
@@ -228,6 +241,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			if(neighbors[c] == i2) {
 
 				//case 2
+			//tris<<"Case 2\n";
 				//for the 2 neighbors of i that aren't i2
 				// find midpoints between them and current
 				vertexToCoord(vert, v[0],neighbors[(c+1)%3],X,Y);
@@ -259,9 +273,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		}
 		if (neighborCount != -1){
+		//tris<<"Case 3 or 4\n";
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
-			for( int c = 0; c < 3; c++) 
+			for( int c = 0; c < 3; c++)
 				vertexToCoord(vert, v[c],neighbors[c],X,Y);
 			drawTris(current, v, vert, tris);
 
@@ -271,7 +286,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		}
 	}
 	else if(count == 3 || count == 5){
-		cout << "Count = 3\n";
+		//cout << "Count = 3\n";
 		int index[] = {0,0,0};//stores the value of the index in vert of the vertices.
 		int neighbors[3][3];//for each corresponding vertex in index, it's neighbors are put in here.
 		//vertex current[3];
@@ -311,6 +326,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 13: //case 5
 			{
+			//tris<<"Case 5\n";
 				vertex pentMid[5];
 				midIndex = 0;
 				//find the midpoints
@@ -334,6 +350,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 2: //case 6
 			{
+			//tris<<"Case 6\n";
 				//draw triangle
 				int ssq[2];
 				int midIndex = 0;
@@ -380,11 +397,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				}
 				vertexToCoord(vert,current,index[tri],X,Y);
 				drawTris(current,NV,vert,tris);
-				
+
 				break;
 			}
 		case 0:	//case7 (no neighbors)
 			{
+			//tris<<"Case 7\n";
 				for(int j = 0; j < 3; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
 						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
@@ -400,7 +418,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		}
 
 	} else if(count == 4){
-		cout << "Count = 4\n";
+		//cout << "Count = 4\n";
 		int index[] = {0,0,0,0};
 		int neighbors[4][3];
 		vertex midpoints[4], v[4][3]; //current[4]
@@ -442,6 +460,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 44:
 			//case 8
+			//tris<<"Case 8\n";
 			int l;
 			//if each node has exactly2 neighbors that are vertices, degree sequence {2,2,2,2}
 			for(int j = 0; j < 4; j++) {//going through each vertex
@@ -473,9 +492,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			break;
 		case 114:
 			//case 9
+			//tris<<"Case 9\n";
 			midIndex = 0;
 			vertex hexMidpoints[6];
-			
+
 			for(int j = 0; j < 4; j++) {
 				vertexToCoord(vert, current, index[j],X,Y);
 				for(int k = 0; k < 3; k++) {
@@ -496,10 +516,11 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			drawHex(hexMidpoints, tris);
 			break;
 		case 4:
+		//tris<<"Case 10\n";
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
 			//vertex midpoints[4];
-			
+
 			//vertex N1;
 			N1.X = -1;
 			//cycle through vert until a vertex has been found.
@@ -566,7 +587,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			//second square
 			for(int j = 0; j < 2; j++) {
 				vertexToCoord(vert, current, index[secondIndex[j]],X,Y);
-				for(int k = 0; k < 3; k++) { //for each neighbor 
+				for(int k = 0; k < 3; k++) { //for each neighbor
 					flag = 0;
 					if(neighbors[secondIndex[j]][k] != secondIndex[(j+1)%2]) {
 						vertexToCoord(vert, N1, neighbors[secondIndex[j]][k],X,Y);
@@ -581,6 +602,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			break;
 		case 13:
 			{
+	//tris<<"Case 12\n";
 				//case 12
 				int index2[3];
 				int neighbors2[3][3];
@@ -614,7 +636,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				vertexToCoord(vert,current,index[triVert],X,Y);
 				drawTris(current,NV,vert,tris);
 
-			
+
 				vertex pentMid[5];
 				midIndex = 0;
 				//find the midpoints
@@ -639,9 +661,9 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 0:
 			{
 				//case 13
+				//tris<<"Case 13\n";
 				//if none of the other vertices are neighbors for the
-
-				for(int j = 0; j < 3; j++) { //for each vertex
+				for(int j = 0; j < 4; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
 						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
 					}
@@ -655,6 +677,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 24:
 			{
 				//case 11/14
+	//tris<<"Case 11 or 14\n";
 				int index2[4];
 				int neighbors2[4][3];
 				int nCount = 0;
@@ -693,9 +716,106 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 						}
 					}
 				}
-				
-				vertex triangle[4][3];
 
+				//should not use neighbors or index below here.
+				vertex coord[4];
+				for(int j = 0; j < 4; j++) {
+					vertexToCoord(vert,coord[j],index2[j],X,Y);
+				}
+				
+				vertex N1;
+				vertex triangle[4][3];
+				//triangle 0
+				//vertexToCoord(vert,current,index2[0],X,Y);
+				int triIndex = 0;
+				for(int j = 0; j < 3;j++) {
+
+					if(neighbors2[2][j] != index2[1] && neighbors2[2][j] != index2[3] ) {
+						//vertexToCoord(vert, temp, index2[2],X,Y);
+						vertexToCoord(vert, N1, neighbors[2][j],X,Y);
+						//triangle[0][2]
+						triangle[0][2].X = (coord[2].X + N1.X) / 2;
+						triangle[0][2].Y = (coord[2].Y + N1.Y) / 2;
+						triangle[0][2].Z = (coord[2].Z + N1.Z) / 2;
+						triangle[0][2].color = coord[2].color;
+						//triangle[2][0]
+						triangle[2][0].X = triangle[0][2].X;
+						triangle[2][0].Y = triangle[0][2].Y;
+						triangle[2][0].Z = triangle[0][2].Z;
+						//triangle[3][0]
+						triangle[3][0].X = triangle[0][2].X;
+						triangle[3][0].Y = triangle[0][2].Y;
+						triangle[3][0].Z = triangle[0][2].Z;
+					}
+
+					if(neighbors2[0][j] != index2[1]) {
+						vertexToCoord(vert, N1,neighbors[0][j],X,Y);
+						//triangle[0][0] and //triangle[0][1]
+						triangle[0][triIndex].X = (coord[0].X + N1.X) / 2;
+						triangle[0][triIndex].Y = (coord[0].Y + N1.Y) / 2;
+						triangle[0][triIndex].Z = (coord[0].Z + N1.Z) / 2;
+						triangle[0][triIndex].color = coord[0].color;
+						triIndex++;
+					}
+				}
+				toFile(triangle[0], tris);
+				
+				//triangle 1			
+				for(int j = 0; j < 3; j++) {
+					if(neighbors2[1][j] != index2[0] && neighbors2[1][j] != index2[2]) {
+						vertexToCoord(vert,N1,neighbors2[1][j],X,Y);
+						//triangle[1][0]
+						triangle[1][0].X = (coord[1].X + N1.X) / 2;
+						triangle[1][0].Y = (coord[1].Y + N1.Y) / 2;
+						triangle[1][0].Z = (coord[1].Z + N1.Z) / 2;
+						triangle[1][0].color = coord[1].color;
+					}
+				}
+
+				int flag = 0;
+				double closest = pow((sqrt(triangle[1][0].X - triangle[0][0].X) + sqrt(triangle[1][0].Y - triangle[0][0].Y) + sqrt(triangle[1][0].Z - triangle[0][0].Z)), 2);
+
+				if(closest > pow((sqrt(triangle[1][0].X - triangle[0][1].X) + sqrt(triangle[1][0].Y - triangle[0][1].Y) + sqrt(triangle[1][0].Z - triangle[0][1].Z)), 2)) {
+					flag = 1;
+				}
+				//triangle[1][1]
+				triangle[1][1].X = triangle[0][flag].X;
+				triangle[1][1].Y = triangle[0][flag].Y;
+				triangle[1][1].Z = triangle[0][flag].Z;
+				////triangle[2][1]
+				triangle[2][1].X = triangle[0][flag].X;
+				triangle[2][1].Y = triangle[0][flag].Y;
+				triangle[2][1].Z = triangle[0][flag].Z;
+
+				
+				vertex vert3[2];
+				for(int j = 0; j < 3; j++) {
+					if(neighbors2[3][j] != index2[2]) {
+						vertexToCoord(vert,vert3[j],neighbors2[3][j],X,Y);
+					}
+				}
+				closest = pow((sqrt(triangle[1][0].X - vert3[0].X) + sqrt(triangle[1][0].Y - vert3[0].Y) + sqrt(triangle[1][0].Z - vert3[0].Z)), 2);
+				flag = 0;
+				if(closest > pow((sqrt(triangle[1][0].X - vert3[1].X) + sqrt(triangle[1][0].Y - vert3[1].Y) + sqrt(triangle[1][0].Z - vert3[1].Z)), 2))
+					flag = 1;
+				//triangle[1][2]
+				triangle[1][2].X = vert3[flag].X;
+				triangle[1][2].Y = vert3[flag].Y;
+				triangle[1][2].Z = vert3[flag].Z;
+				//triangle[2][2]
+				triangle[2][2].X = vert3[flag].X;
+				triangle[2][2].Y = vert3[flag].Y;
+				triangle[2][2].Z = vert3[flag].Z;
+				//triangle[3][1]
+				triangle[3][1].X = vert3[flag].X;
+				triangle[3][1].Y = vert3[flag].Y;
+				triangle[3][1].Z = vert3[flag].Z;
+				//triangle[3][2]
+				triangle[3][2].X = vert3[(flag+1)%2].X;
+				triangle[3][2].Y = vert3[(flag+1)%2].Y;
+				triangle[3][2].Z = vert3[(flag+1)%2].Z;
+
+				//triangle 2  and triangle 3 are already figured out.
 
 				break;
 			}
@@ -714,7 +834,7 @@ void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
 		midpoints[i].Z = (current.Z + v[i].Z) / 2;
 		midpoints[i].color = (current.color + v[i].color) / 2;
 	}
-	toFile(midpoints, tris);	
+	toFile(midpoints, tris);
 }
 
 void drawQuad(vertex v[], ofstream &tris){
@@ -781,20 +901,20 @@ void drawPent(vertex v[], ofstream &tris) {
 		if( flag == 0)
 			R1 = v[i];
 	}
-	
+
 	dist = sqrt(pow(R1.X - planar[0].X,2) + pow(R1.Y - planar[0].Y,2) + pow(R1.Z - planar[0].Z,2));
 	R1closest = planar[0];
-	
+
 	for(int i = 1; i < 3; i++) {
 		if(sqrt(pow(R1.X - planar[i].X,2) + pow(R1.Y - planar[i].Y,2) + pow(R1.Z - planar[i].Z,2)) < dist) {
 			dist = sqrt(pow(R1.X - planar[i].X,2) + pow(R1.Y - planar[i].Y,2) + pow(R1.Z - planar[i].Z,2));
 			R1closest = planar[i];
 		}
 	}
-	
+
 	//find the closest of the planar 3 vertices to the remaining vertex.
 	vertex R2, R2closest;
-	
+
 	for(int i = 0; i < 5; i++){
 		flag  =  0;
 		for(int j = 0; j < 3; j++) {
@@ -869,10 +989,19 @@ void drawHex(vertex v[], ofstream &tris) {
 
 void toFile(vertex midpoints[],  ofstream &tris) {
 	//This prevents the triangles that have 2 or more points = 0 from being written.
+//cout<<midpoints[0].X<<"\t"<<midpoints[0].Y<<"\t"<<midpoints[0].Z<<endl;
+//cout<<midpoints[1].X<<"\t"<<midpoints[1].Y<<"\t"<<midpoints[1].Z<<endl;
+//cout<<midpoints[2].X<<"\t"<<midpoints[2].Y<<"\t"<<midpoints[2].Z<<endl;
+
 	int count = 0;
-	for(int i = 0; i < 3; i++) {
-		if(abs(midpoints[i].X - midpoints[(i+1)%3].X) < epsilon && abs(midpoints[i].Y - midpoints[(i+1)%3].Y) < epsilon && abs(midpoints[i].Z - midpoints[(i+1)%3].Z) < epsilon)
-			count++;
+	for(int i = 0; i < 3; i++)
+	{
+	   
+		if(absolute(midpoints[i].X - midpoints[(i+1)%3].X) < epsilon && absolute(midpoints[i].Y - midpoints[(i+1)%3].Y) < epsilon && absolute(midpoints[i].Z - midpoints[(i+1)%3].Z) < epsilon)
+		{
+		    count++;
+		}
+
 	}
 	if(count > 1) {
 		//cout << "Triangle has no area\n";
@@ -931,9 +1060,9 @@ void findNeighbors(int neighbors[], int i) {
 	}
 }
 
-void vertexToCoord(float vert[], vertex v, int i, double X, double Y){
+void vertexToCoord(float vert[], vertex &v, int i, double X, double Y){
 	///given the coords lower left vertex, calculate any of the other 7 vertices.
-	if(i == 0 || i == 1 || i == 0 || i == 5)
+	if(i == 0 || i == 1 || i == 4 || i == 5)
 		v.X = X;
 	else
 		v.X = X + deltaX;
@@ -949,5 +1078,4 @@ void vertexToCoord(float vert[], vertex v, int i, double X, double Y){
 		v.Z = currentZ + deltaZ;
 
 	v.color = vert[i];
-
 }
