@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 				vertices[6] = array2[j+1][k];
 
 				march(vertices,left + j * deltaX, bottom + k * deltaY, tris);
-
+				
 				//moving right
 				vertices[0] = vertices[3];
 				vertices[1] = vertices[2];
@@ -188,7 +188,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 	} else if(count == 1 || count == 7){
 		int neighbors[3];
 		//cout << "Count 1\n";
-		cout<<"Case 1\n";
+		//cout<<"Case 1\n";
 		//case 1
 		i = 0;
 		if(count == 1){
@@ -213,7 +213,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 	} else if(count == 2 || count == 6){
 
-		cout << "Case 2\n";
+		//cout << "Case 2\n";
 		int neighbors[3];
 		int neighbors2[3];
 		vertex current2, squareVerts[4];
@@ -277,7 +277,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		}
 		if (neighborCount != -1){
-		cout << "Case 3 or 4\n";
+		//cout << "Case 3 or 4\n";
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
 			for( int c = 0; c < 3; c++)
@@ -301,9 +301,16 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		i = 0;
 		for(int j = 0; j < 8; j++) {
-			if(vert[j] != -1){
-				index[i] = j;
-				i++;
+			if(count == 3) {
+				if(vert[j] != -1){
+					index[i] = j;
+					i++;
+				}
+			} else {
+				if(vert[j] == -1){
+					index[i] = j;
+					i++;
+				}
 			}
 		}
 
@@ -315,7 +322,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		int sumCount = 0;
 		int iterCount = 0;
 		//This uses the number of neighbors to create a unique number for each case
-		cout << "Index = {" << index[0] << ", "<< index[1] << ", "<< index[2] << "} " << endl;
+		//cout << "Index = {" << index[0] << ", "<< index[1] << ", "<< index[2] << "} " << endl;
 		for(int j = 0; j < 3; j++) {//for each vertex in neighbors
 			iterCount = 0;
 			for(int k = 0; k < 3; k++) {//go through it's list of neighbors
@@ -323,7 +330,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 					if(neighbors[j][k] == index[l]) {//if one of the neighbors of this vertex is a filled vertex
 						sumCount+= pow(10.0,iterCount);
 						iterCount++;
-						cout << "A neighbor of index[" << j << "] is index[" << l << "] and sumCount is now: " << sumCount << endl;
+						//cout << "A neighbor of index[" << j << "] is index[" << l << "] and sumCount is now: " << sumCount << endl;
 						//break;
 					}
 				}
@@ -333,7 +340,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 13: //case 5
 			{
-			cout << "Case 5\n";
+			//cout << "Case 5\n";
 				vertex pentMid[5];
 				midIndex = 0;
 				//find the midpoints
@@ -357,7 +364,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 2: //case 6
 			{
-			cout <<"Case 6\n";
+			//cout <<"Case 6\n";
 				//draw triangle
 				int ssq[2];
 				int midIndex = 0;
@@ -367,27 +374,27 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 					for(int k = 0; k < 3; k++) {
 						for(int l = 0; l < 3; l++) {
 							if(neighbors[j][k] == index[l]){
-								ssq[0] = j;
-								ssq[1] = l;
-								//vertexToCoord(vert,ssq[0],index[j],X,Y);
-								//vertexToCoord(vert,ssq[1],index[i],X,Y);
+								//cout << "j,l = " << j << ", " << l << endl;
+								ssq[0] = l;
+								ssq[1] = j;
 							}
 						}
 					}
 				}
-
+				
 				for(int j = 0; j < 2; j++) {//for each vertex
 					vertexToCoord(vert,current,index[ssq[j]],X,Y);
 					for(int k = 0; k < 3; k++) { //for each neighbor
-						if(neighbors[ssq[j]][k] != index[(ssq[j] + 1)%2]){//If the neighbor is not the other vertex
+						if(neighbors[ssq[j]][k] != index[ssq[(j + 1)%2]]){//If the neighbor is not the other vertex
 							vertexToCoord(vert,N1,neighbors[ssq[j]][k],X,Y);
 							midSQ[midIndex].X = (current.X + N1.X) / 2;
 							midSQ[midIndex].Y = (current.Y + N1.Y) / 2;
 							midSQ[midIndex].Z = (current.Z + N1.Z) / 2;
 							midSQ[midIndex].color = vert[neighbors[ssq[j]][k]];
+							//cout << "midIndex = " << midIndex << ", neighbors[" << ssq[j] << "][" << k <<"] = " << neighbors[ssq[j]][k] << ", index[" << (ssq[j] + 1)%2 << "] = " << index[(ssq[j] + 1)%2] << endl;
 							midIndex++;
-							if(midIndex >= 4) {
-								cout << "midIndex should be less than 4, but it is " << midIndex << endl;
+							if(midIndex > 4) {
+								cout << "midIndex should be 4 or less, but it is " << midIndex << endl;
 							}
 						}
 					}
@@ -395,7 +402,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 				midIndex = 0;
 				drawQuad(midSQ, tris);
-
+				
 				int tri;
 				for(int j = 0; j < 3; j++) {
 					if(j != ssq[0] && j != ssq[1])
@@ -407,12 +414,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				}
 				vertexToCoord(vert,current,index[tri],X,Y);
 				drawTris(current,NV,vert,tris);
-
+				//cout << "end 6\n";
 				break;
 			}
 		case 0:	//case7 (no neighbors)
 			{
-			cout <<"Case 7\n";
+			//cout <<"Case 7\n";
 				for(int j = 0; j < 3; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
 						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
@@ -459,26 +466,27 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		int sumCount = 0;
 		int iterCount = 0;
 		//This uses the number of neighbors to create a unique number for each case
+		//cout << "Index = {" << index[0] << ", "<< index[1] << ", " << index[2] << ", " << index[3] << "} " << endl;
 		for(int j = 0; j < 4; j++) {
 			iterCount = 0;
 			for(int k = 0; k < 3; k++) {
 				for(int l = 0; l < 4; l++) {
 					if(neighbors[j][k] == index[l]) {
 						sumCount+= pow(10.0,iterCount);
-						cout << "-- " << sumCount << endl;
+						//cout << "A neighbor of index[" << j << "] is index[" << l << "] and sumCount is now: " << sumCount << endl;
 						iterCount++;
 					}
 				}
 			}
 		}
-		//if(sumCount != 44 && sumCount != 114 &&sumCount != 4 && sumCount != 13 && sumCount != 0 && sumCount != 24) {
+		if(sumCount != 44 && sumCount != 114 &&sumCount != 4 && sumCount != 13 && sumCount != 0 && sumCount != 24) {
 			cout << "case 4: sumCount = " << sumCount << endl;
-		//}
+		}
 
 		switch(sumCount) {
 		case 44:
 			//case 8
-			cout<<"Case 8\n";
+			//cout<<"Case 8\n";
 			int l;
 			//if each node has exactly2 neighbors that are vertices, degree sequence {2,2,2,2}
 			for(int j = 0; j < 4; j++) {//going through each vertex
@@ -511,7 +519,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 114:
 			{
 				//case 9
-				cout <<"Case 9\n";
+				//cout <<"Case 9\n";
 				midIndex = 0;
 				vertex hexMidpoints[6];
 
@@ -538,7 +546,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			
 
 		case 4:
-			cout <<"Case 10\n";
+			//cout <<"Case 10\n";
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
 			//vertex midpoints[4];
@@ -625,7 +633,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		case 13:
 			{
-				cout <<"Case 12\n";
+				//cout <<"Case 12\n";
 				//case 12
 				int index2[3];
 				int neighbors2[3][3];
@@ -634,14 +642,18 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				int triVert;
 				int flag = 0;
 				int indexInc = 0;
+
 				for(int j = 0; j < 4; j++) {
+					flag = 0;
 					for(int k = 0; k < 3; k++) {
 						//Need to find out which vertex is the singleton
 						for(int l = 0; l < 4; l++) {
-							if(neighbors[j][k] = index[l])
+							if(neighbors[j][k] == index[l]) {
 								flag = 1;
+							}
 						}
 					}
+					
 					//I need to put the unused 3 vertices and their neighbors into the new data structures.
 					if(flag == 1){
 						index2[indexInc] = index[j];
@@ -652,8 +664,9 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 						triVert = j;
 					}
 				}
-
+				
 				for(int j = 0; j < 3;j++) {
+					//cout << "j = " << j << endl;
 					vertexToCoord(vert, NV[j], neighbors[triVert][j], X, Y);
 				}
 				vertexToCoord(vert,current,index[triVert],X,Y);
@@ -684,7 +697,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 0:
 			{
 				//case 13
-				cout <<"Case 13\n";
+				//cout <<"Case 13\n";
 				//if none of the other vertices are neighbors for the
 				for(int j = 0; j < 4; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
@@ -700,7 +713,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 24:
 			{
 				//case 11/14
-				cout <<"Case 11 or 14" << endl;;
+				//cout <<"Case 11 or 14" << endl;;
 				int index2[4];
 				int neighbors2[4][3];
 				int nCount = 0;
@@ -846,11 +859,22 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				break;
 			}
 			default:
-				cout << "count = 4, case = " << sumCount << ", Index = {" << index[0] << ", "<< index[1] << ", "<< index[2] << ", " << index[3] << "} " << endl;
+				{
+					cout << "count = 4, case = " << sumCount << ", Index = \n{" << index[0] << ", "<< index[1] << ", "<< index[2] << ", " << index[3] << "} " << endl;
+					cout << "Neighbors = \n" ;
+					for(int i = 0; i < 4; i++) {
+						cout << "{";
+						for(int j = 0; j < 3;j++){
+							cout << neighbors[i][j] ;
+							if(j!=2) cout << ", ";
+						}
+						cout << "}\n";
+					}
+				}
 		}
 	}
 	else
-		cout << "No cases selected." << endl;
+		cout << "No cases selected, count = " << count << endl;
 }
 
 void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
@@ -867,7 +891,7 @@ void drawTris(vertex current, vertex v[], float vert[], ofstream &tris){
 }
 
 void drawQuad(vertex v[], ofstream &tris){
-	cout << "quad" << endl;
+	//cout << "quad" << endl;
 	vertex triangle[3];
 	for(int i = 0; i < 3; i++)
 		triangle[i] = v[i];
@@ -897,7 +921,7 @@ void drawQuad(vertex v[], ofstream &tris){
 
 }
 void drawPent(vertex v[], ofstream &tris) {
-	cout << "pent" << endl;
+	//cout << "pent" << endl;
 	//find 3 on plane(parallel to X Y or Z axis) and draw triangle.
 	vertex planar[3];
 	for(int i = 0; i < 5; i++) {
@@ -981,7 +1005,7 @@ void drawPent(vertex v[], ofstream &tris) {
 }
 
 void drawHex(vertex v[], ofstream &tris) {
-	cout << "hex" << endl;
+	//cout << "hex" << endl;
 	//This assumes that all coordinates are on the same plane
 	vertex set1[3];//temp set
 	vertex square[4];
@@ -1068,7 +1092,7 @@ void findNeighbors(int neighbors[], int i) {
 	case 1:
 		neighbors[0] = 2;
 		neighbors[1] = 0;
-		neighbors[2] = 6;
+		neighbors[2] = 5;
 		break;
 	case 2:
 		neighbors[0] = 1;
