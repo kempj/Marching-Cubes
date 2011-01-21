@@ -12,6 +12,7 @@ double deltaZ;
 double deltaY;
 double deltaX;
 double currentZ;
+int cases = 0;//turns the case outputs on and off
 
 struct vertex{
 	double X;
@@ -113,6 +114,9 @@ int main(int argc, char *argv[])
 		currentZ = front + i * deltaZ;
 		for(int j = 0; j < size; j++) {
 			for(int k = 0; k < size; k++) {
+				if(i > 0) {
+					array1[j][k] = array2[j][k];
+				}
 				slice.getline(readcStr,32,' ');
 				//cout << readcStr << endl;
 				array2[j][k] = (float)atof(readcStr);
@@ -132,7 +136,7 @@ int main(int argc, char *argv[])
 				vertices[2] = array1[j+1][k];
 				vertices[7] = array2[j+1][k+1];
 				vertices[6] = array2[j+1][k];
-
+				//if(cases == 1)cout << "marching!\n";
 				march(vertices,left + j * deltaX, bottom + k * deltaY, tris);
 				
 				//moving right
@@ -188,7 +192,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 	} else if(count == 1 || count == 7){
 		int neighbors[3];
 		//cout << "Count 1\n";
-		//cout<<"Case 1\n";
+		if(cases == 1) cout<<"Case 1\n";
 		//case 1
 		i = 0;
 		if(count == 1){
@@ -213,7 +217,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 	} else if(count == 2 || count == 6){
 
-		//cout << "Case 2\n";
+		if(cases == 1)cout << "Count 2:\n";
 		int neighbors[3];
 		int neighbors2[3];
 		vertex current2, squareVerts[4];
@@ -245,7 +249,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			if(neighbors[c] == i2) {
 
 				//case 2
-				cout << "Case 2\n";
+				if(cases == 1) cout << " -Case 2\n";
 				//for the 2 neighbors of i that aren't i2
 				// find midpoints between them and current
 				vertexToCoord(vert, v[0],neighbors[(c+1)%3],X,Y);
@@ -277,7 +281,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		}
 		if (neighborCount != -1){
-		//cout << "Case 3 or 4\n";
+		if(cases == 1) cout << " -Case 3 or 4\n";
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
 			for( int c = 0; c < 3; c++)
@@ -340,7 +344,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 13: //case 5
 			{
-			//cout << "Case 5\n";
+			if(cases == 1) cout << "Case 5\n";
 				vertex pentMid[5];
 				midIndex = 0;
 				//find the midpoints
@@ -364,7 +368,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 2: //case 6
 			{
-			//cout <<"Case 6\n";
+			if(cases == 1) cout <<"Case 6\n";
 				//draw triangle
 				int ssq[2];
 				int midIndex = 0;
@@ -419,7 +423,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 0:	//case7 (no neighbors)
 			{
-			//cout <<"Case 7\n";
+			if(cases == 1) cout <<"Case 7\n";
 				for(int j = 0; j < 3; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
 						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
@@ -486,7 +490,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 44:
 			//case 8
-			//cout<<"Case 8\n";
+			if(cases == 1) cout<<"Case 8\n";
 			int l;
 			//if each node has exactly2 neighbors that are vertices, degree sequence {2,2,2,2}
 			for(int j = 0; j < 4; j++) {//going through each vertex
@@ -519,24 +523,30 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 114:
 			{
 				//case 9
-				//cout <<"Case 9\n";
+				if(cases == 1) cout <<"Case 9\n";
 				midIndex = 0;
+				int flag = 0;
 				vertex hexMidpoints[6];
 
 				for(int j = 0; j < 4; j++) {
 					vertexToCoord(vert, current, index[j],X,Y);
 					for(int k = 0; k < 3; k++) {
+						flag = 0;
 						for(int l = 0; l < 4; l++) {
-							if(neighbors[j][k] != index[l]){
-								//find midpoint
-								vertexToCoord(vert,N1, neighbors[j][k],X,Y);
-								//pop midpoint
-								hexMidpoints[midIndex].X = (current.X + N1.X) / 2;
-								hexMidpoints[midIndex].Y = (current.Y + N1.Y) / 2;
-								hexMidpoints[midIndex].Z = (current.Z + N1.Z) / 2;
-								hexMidpoints[midIndex].color = vert[index[i]];//DCthis
-								midIndex++;
+							if(neighbors[j][k] == index[l]){
+								flag = 1;
 							}
+						}
+						if(flag == 0) {
+							//find midpoint
+							vertexToCoord(vert,N1, neighbors[j][k],X,Y);
+							//pop midpoint
+							hexMidpoints[midIndex].X = (current.X + N1.X) / 2;
+							hexMidpoints[midIndex].Y = (current.Y + N1.Y) / 2;
+							hexMidpoints[midIndex].Z = (current.Z + N1.Z) / 2;
+							hexMidpoints[midIndex].color = vert[index[j]];//DCthis
+							//cout << midIndex << endl;
+							midIndex++;
 						}
 					}
 				}
@@ -546,7 +556,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			
 
 		case 4:
-			//cout <<"Case 10\n";
+			if(cases == 1) cout <<"Case 10\n";
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
 			//vertex midpoints[4];
@@ -633,7 +643,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		case 13:
 			{
-				//cout <<"Case 12\n";
+				if(cases == 1) cout <<"Case 12\n";
 				//case 12
 				int index2[3];
 				int neighbors2[3][3];
@@ -697,7 +707,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 0:
 			{
 				//case 13
-				//cout <<"Case 13\n";
+				if(cases == 1) cout <<"Case 13\n";
 				//if none of the other vertices are neighbors for the
 				for(int j = 0; j < 4; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
@@ -713,20 +723,21 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 24:
 			{
 				//case 11/14
-				//cout <<"Case 11 or 14" << endl;;
+				if(cases == 1) cout <<"Case 11 or 14" << endl;;
 				int index2[4];
 				int neighbors2[4][3];
 				int nCount = 0;
 				//Order the index
 				//first index
 				for(int j = 0; j < 4; j++) {
+					nCount = 0;
 					for(int k = 0; k < 3;k++) {
 						for(int l = 0; l < 3;l++) {
 							if(neighbors[j][k] == index[l])
 								nCount++;
 						}
-					}
-					if(nCount == 1){
+					}					
+					if(nCount == 1){//this places one of the vertices with only one neighbor at position 0
 						index2[0] = index[j];
 						for(int k = 0; k < 3; k++) {
 							neighbors2[0][k] = neighbors[j][k];
@@ -825,9 +836,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 				
 				vertex vert3[2];
+				int tmpIndex = 0;
+				
 				for(int j = 0; j < 3; j++) {
 					if(neighbors2[3][j] != index2[2]) {
-						vertexToCoord(vert,vert3[j],neighbors2[3][j],X,Y);
+						vertexToCoord(vert,vert3[tmpIndex],neighbors2[3][j],X,Y);
+						tmpIndex++;
 					}
 				}
 				closest = pow((sqrt(triangle[1][0].X - vert3[0].X) + sqrt(triangle[1][0].Y - vert3[0].Y) + sqrt(triangle[1][0].Z - vert3[0].Z)), 2);
@@ -1024,11 +1038,16 @@ void drawHex(vertex v[], ofstream &tris) {
 	index = 0;
 	double maxDist = 0;
 	//distinguish between the adjacent midpoints, and the far midpoint using distance.
+
 	for(int i = 0; i < 3; i++) {
-		maxDist = max(maxDist, pow((sqrt(v[0].X - set1[i].X) + sqrt(v[0].Y - set1[i].Y) + sqrt(v[0].Z - set1[i].Z)), 2));
+		//cout << "~" << v[0].X << " " << set1[i].X << endl;
+		//cout << "~" << v[0].Y << " " << set1[i].Y << endl;
+		//cout << "~" << v[0].Z << " " << set1[i].Z << endl;
+		maxDist = max(maxDist,  sqrt(pow(v[0].X - set1[i].X,2.0) + pow(v[0].Y - set1[i].Y,2.0) + pow(v[0].Z - set1[i].Z,2.0)));
+		//cout << "--maxDist is: " << maxDist<< " -- " << sqrt(v[0].Z - set1[i].Z) << endl;
 	}
 	for(int i = 0; i < 3; i++) {
-		if (maxDist == pow((sqrt(v[0].X - set1[i].X) + sqrt(v[0].Y - set1[i].Y) + sqrt(v[0].Z - set1[i].Z)), 2)) {
+		if (abs(maxDist - sqrt(pow(v[0].X - set1[i].X,2.0) + pow(v[0].Y - set1[i].Y,2.0) + pow(v[0].Z - set1[i].Z,2.0))) < epsilon) {
 			triangle2[0] = set1[i];
 		} else {
 			triangle1[index+1] = set1[i];
@@ -1043,7 +1062,7 @@ void drawHex(vertex v[], ofstream &tris) {
 		for(int j = 0; j < 3; j++) {
 			if(v[i].X == set1[j].X && v[i].Y == set1[j].Y && v[i].Z == set1[j].Z) {
 				flag = 1;
-				break;
+				//break;
 			}
 		}
 		if(flag == 0) {
@@ -1051,6 +1070,7 @@ void drawHex(vertex v[], ofstream &tris) {
 			square[index+2] = v[i];
 			index++;
 		}
+		//cout << index << endl;
 	}//I think this is complete, double check, tired when completed.//Doublechecked.
 }
 
