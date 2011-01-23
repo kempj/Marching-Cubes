@@ -13,6 +13,7 @@ double deltaY;
 double deltaX;
 double currentZ;
 int cases = 0;//turns the case outputs on and off
+int fileDB = 0;
 
 struct vertex{
 	double X;
@@ -188,11 +189,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		//case 0: No triangles in this cube, draw nothing
 		//cout << "Count = 0\n";
 		//cout << "Case 0\n";
-		//tris<<"Case 0\n";
+		//if(fileDB == 1)tris<<"Case 0\n";
 	} else if(count == 1 || count == 7){
 		int neighbors[3];
 		//cout << "Count 1\n";
 		if(cases == 1) cout<<"Case 1\n";
+		if(fileDB == 1)tris << "Case1\n";
 		//case 1
 		i = 0;
 		if(count == 1){
@@ -250,6 +252,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 				//case 2
 				if(cases == 1) cout << " -Case 2\n";
+				if(fileDB == 1)tris << "Case2\n";
 				//for the 2 neighbors of i that aren't i2
 				// find midpoints between them and current
 				vertexToCoord(vert, v[0],neighbors[(c+1)%3],X,Y);
@@ -282,6 +285,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		}
 		if (neighborCount != -1){
 		if(cases == 1) cout << " -Case 3 or 4\n";
+		if(fileDB == 1)tris << "Case3 or 4\n";
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
 			for( int c = 0; c < 3; c++)
@@ -344,21 +348,33 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 13: //case 5
 			{
-			if(cases == 1) cout << "Case 5\n";
+				if(cases == 1) cout << "Case 5\n";
+				if(fileDB == 1)tris << "Case 5\n";
 				vertex pentMid[5];
 				midIndex = 0;
+				int flag = 0;
 				//find the midpoints
-				for(int j = 0; j < 3; j++) {
+				for(int j = 0; j < 3; j++) {					
 				vertexToCoord(vert, current, index[j],X,Y);
 					for(int k = 0; k < 3; k++) {
+						flag = 0;
 						for(int l = 0; l < 3; l++) {
-							if(neighbors[j][k] != index[i]) {
-								vertexToCoord(vert, N1, neighbors[j][k],X,Y);
-								pentMid[midIndex].X = (current.X + N1.X) / 2;
-								pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
-								pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
-								pentMid[midIndex].color = vert[neighbors[j][k]];//DCthis
+							if(neighbors[j][k] == index[l]) {
+								flag = 1;
 							}
+						}
+						if(flag == 0) {
+							//cout << "currently on vertex " << j << endl;
+							vertexToCoord(vert, N1, neighbors[j][k],X,Y);
+							//cout << "current.X = " << current.X << ", N1.X = " << N1.X << endl;
+							pentMid[midIndex].X = (current.X + N1.X) / 2;
+							//cout << "current.Y = " << current.Y << ", N1.Y = " << N1.Y << endl;
+							pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
+							//cout << "current.Z = " << current.Z << ", N1.Z = " << N1.Z << endl;
+							pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
+							pentMid[midIndex].color = vert[neighbors[j][k]];//DCthis
+							//cout << midIndex << endl;
+							midIndex++;
 						}
 					}
 				}
@@ -369,6 +385,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 2: //case 6
 			{
 			if(cases == 1) cout <<"Case 6\n";
+			if(fileDB == 1)tris << "Case 6\n";
 				//draw triangle
 				int ssq[2];
 				int midIndex = 0;
@@ -424,6 +441,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 0:	//case7 (no neighbors)
 			{
 			if(cases == 1) cout <<"Case 7\n";
+			if(fileDB == 1)tris << "Case 7\n";
 				for(int j = 0; j < 3; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
 						vertexToCoord(vert, v[j][k],neighbors[j][k],X,Y);
@@ -491,6 +509,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 44:
 			//case 8
 			if(cases == 1) cout<<"Case 8\n";
+			if(fileDB == 1)tris << "Case 8\n";
 			int l;
 			//if each node has exactly2 neighbors that are vertices, degree sequence {2,2,2,2}
 			for(int j = 0; j < 4; j++) {//going through each vertex
@@ -524,6 +543,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			{
 				//case 9
 				if(cases == 1) cout <<"Case 9\n";
+				if(fileDB == 1)tris << "Case 9\n";
 				midIndex = 0;
 				int flag = 0;
 				vertex hexMidpoints[6];
@@ -557,6 +577,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		case 4:
 			if(cases == 1) cout <<"Case 10\n";
+			if(fileDB == 1)tris << "Case 10\n";
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
 			//vertex midpoints[4];
@@ -644,6 +665,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 13:
 			{
 				if(cases == 1) cout <<"Case 12\n";
+				if(fileDB == 1)tris << "Case 12\n";
 				//case 12
 				int index2[3];
 				int neighbors2[3][3];
@@ -685,18 +707,24 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 				vertex pentMid[5];
 				midIndex = 0;
+				flag = 0;
 				//find the midpoints
 				for(int j = 0; j < 3; j++) {
 				vertexToCoord(vert, current, index2[j],X,Y);
 					for(int k = 0; k < 3; k++) {
+						flag = 0;
 						for(int l = 0; l < 3; l++) {
-							if(neighbors2[j][k] != index2[i]) {
-								vertexToCoord(vert, N1, neighbors2[j][k],X,Y);
-								pentMid[midIndex].X = (current.X + N1.X) / 2;
-								pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
-								pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
-								pentMid[midIndex].color = vert[neighbors2[j][k]];//DCthis
+							if(neighbors2[j][k] == index2[l]) {
+								flag = 1;
 							}
+						}
+						if(flag == 0) {
+							vertexToCoord(vert, N1, neighbors2[j][k],X,Y);
+							pentMid[midIndex].X = (current.X + N1.X) / 2;
+							pentMid[midIndex].Y = (current.Y + N1.Y) / 2;
+							pentMid[midIndex].Z = (current.Z + N1.Z) / 2;
+							pentMid[midIndex].color = vert[neighbors2[j][k]];//DCthis
+							midIndex++;
 						}
 					}
 				}
@@ -708,6 +736,7 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			{
 				//case 13
 				if(cases == 1) cout <<"Case 13\n";
+				if(fileDB == 1)tris << "Case 13\n";
 				//if none of the other vertices are neighbors for the
 				for(int j = 0; j < 4; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
@@ -723,7 +752,8 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 24:
 			{
 				//case 11/14
-				if(cases == 1) cout <<"Case 11 or 14" << endl;;
+				if(cases == 1) cout <<"Case 11 or 14" << endl;
+				if(fileDB == 1)tris << "Case 11 or 14\n";
 				int index2[4];
 				int neighbors2[4][3];
 				int nCount = 0;
@@ -789,10 +819,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 						triangle[2][0].X = triangle[0][2].X;
 						triangle[2][0].Y = triangle[0][2].Y;
 						triangle[2][0].Z = triangle[0][2].Z;
+						triangle[2][0].color = triangle[0][2].color;
 						//triangle[3][0]
 						triangle[3][0].X = triangle[0][2].X;
 						triangle[3][0].Y = triangle[0][2].Y;
 						triangle[3][0].Z = triangle[0][2].Z;
+						triangle[3][0].color = triangle[0][2].color;
 					}
 
 					if(neighbors2[0][j] != index2[1]) {
@@ -829,10 +861,12 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				triangle[1][1].X = triangle[0][flag].X;
 				triangle[1][1].Y = triangle[0][flag].Y;
 				triangle[1][1].Z = triangle[0][flag].Z;
+				triangle[1][1].color = triangle[0][flag].color;
 				////triangle[2][1]
 				triangle[2][1].X = triangle[0][flag].X;
 				triangle[2][1].Y = triangle[0][flag].Y;
 				triangle[2][1].Z = triangle[0][flag].Z;
+				triangle[2][1].color = triangle[0][flag].color;
 
 				
 				vertex vert3[2];
@@ -852,18 +886,22 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				triangle[1][2].X = vert3[flag].X;
 				triangle[1][2].Y = vert3[flag].Y;
 				triangle[1][2].Z = vert3[flag].Z;
+				triangle[1][2].color = vert3[flag].color;
 				//triangle[2][2]
 				triangle[2][2].X = vert3[flag].X;
 				triangle[2][2].Y = vert3[flag].Y;
 				triangle[2][2].Z = vert3[flag].Z;
+				triangle[2][2].color = vert3[flag].color;
 				//triangle[3][1]
 				triangle[3][1].X = vert3[flag].X;
 				triangle[3][1].Y = vert3[flag].Y;
 				triangle[3][1].Z = vert3[flag].Z;
+				triangle[3][1].color = vert3[flag].color;
 				//triangle[3][2]
 				triangle[3][2].X = vert3[(flag+1)%2].X;
 				triangle[3][2].Y = vert3[(flag+1)%2].Y;
 				triangle[3][2].Z = vert3[(flag+1)%2].Z;
+				triangle[3][2].color = vert3[(flag+1)%2].color;
 
 				toFile(triangle[1], tris);
 				toFile(triangle[2], tris);
@@ -947,7 +985,7 @@ void drawPent(vertex v[], ofstream &tris) {
 					break;
 				if((v[i].X == v[j].X && v[i].X == v[k].X) ||
 				   (v[i].Y == v[j].Y && v[i].Y == v[k].Y) ||
-				   (v[i].Z == v[j].X && v[i].Z == v[k].Z) ) {
+				   (v[i].Z == v[j].Z && v[i].Z == v[k].Z) ) {
 					planar[0] = v[i];
 					planar[1] = v[j];
 					planar[2] = v[k];
@@ -1012,6 +1050,9 @@ void drawPent(vertex v[], ofstream &tris) {
 	tmpTri[2] = R2closest;
 	toFile(tmpTri, tris);
 	//draw triangle between R2 R2closest and R1
+	//cout << "R2.X = " << R2.X << " R2.Y = " << R2.Y << " R2.Z = " << R2.Z << endl;
+	//cout << "R2closest.X = " << R2closest.X << " R2closest.Y = " << R2closest.Y << " R2closest.Z = " << R2closest.Z << endl;
+	//cout << "R1.X = " << R1.X << " R1.Y = " << R1.Y << " R1.Z = " << R1.Z << endl;
 	tmpTri[0] = R2;
 	tmpTri[1] = R2closest;
 	tmpTri[2] = R1;
