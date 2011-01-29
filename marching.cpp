@@ -92,11 +92,34 @@ int main(int argc, char *argv[])
 		array2[i] = new float[size];
 	}
 	//float array3[size][size];
-
+	int strLoc;
+	int l;
 	for(int j = 0; j < size; j++) {
+		getline(slice,readStr);
+		strLoc = 0;
 		for(int k = 0; k < size; k++) {
-			slice.getline(readcStr,32,' ');
+			//slice.getline(readcStr,32,' ');
+			//array1[j][k] = (float)atof(readcStr);
+
+			while(strLoc <  readStr.size() &&readStr.at(strLoc) == ' '){
+				strLoc++;
+				//cout << strLoc << ", ";
+			}
+			l = 0;
+			//cout << "~";
+			while(strLoc <  readStr.size() && readStr.at(strLoc) != ' ') {
+				readcStr[l] = readStr.at(strLoc);
+				strLoc++;
+				l++;
+				//cout << strLoc << ", ";
+			}
+			readcStr[l] = '\0';
+			strLoc++;
+			//cout << strLoc << ", ";
 			array1[j][k] = (float)atof(readcStr);
+			
+			//slice.getline(readcStr,32,' ');
+			//cout << readcStr << endl;
 		}
 	}
 
@@ -104,47 +127,82 @@ int main(int argc, char *argv[])
 	slice.clear();
 	//slice.open("slices/2.dat");
 	sprintf(filename,"slices/%d.dat",2);
+	//cout << "Filename = " << filename << endl;
 	slice.open(filename);
 	//    if(slice.is_open())
 	//	cout << filename << " opened\n" ;
 	//    else
 	//	cout << filename << "file not opening\n";
 
+
 	//this loop reads in and operates on each slice
 	for(int i = 0; i < size; i++){
 		currentZ = front + i * deltaZ;
 		for(int j = 0; j < size; j++) {
+			getline(slice,readStr);
+			strLoc = 0;
 			for(int k = 0; k < size; k++) {
 				if(i > 0) {
 					array1[j][k] = array2[j][k];
 				}
-				slice.getline(readcStr,32,' ');
-				//cout << readcStr << endl;
+				//readStr[0] = '\0';
+				while(strLoc <  readStr.size() &&readStr.at(strLoc) == ' '){
+					strLoc++;
+				}
+				l = 0;
+				//cout << "~";
+				while(strLoc <  readStr.size() && readStr.at(strLoc) != ' ') {
+					readcStr[l] = readStr.at(strLoc);
+					strLoc++;
+					l++;
+				}
+				readcStr[l] = '\0';
+				strLoc++;
 				array2[j][k] = (float)atof(readcStr);
+				
+				//slice.getline(readcStr,32,' ');
+				//cout << readcStr << " ";
 			}
+			//cout << endl;
 		}
 
 		for(int j = 0; j < size - 1; j++) {
 			//left 4 vertices
-			vertices[0] = array1[j][1];
-			vertices[1] = array1[j][0];
-			vertices[4] = array2[j][1];
-			vertices[5] = array2[j][0];
+			//vertices[0] = array1[j][1];
+			//vertices[1] = array1[j][0];
+			//vertices[4] = array2[j][1];
+			//vertices[5] = array2[j][0];
 
-			for(int k = 0; k < size - 1; k++) {
+			vertices[0] = array1[j][0];
+			vertices[1] = array1[j][1];
+			vertices[4] = array2[j][0];
+			vertices[5] = array2[j][1];
+
+			for(int k = 0; k < size -1; k++) {
 				//right 4 vertices
-				vertices[3] = array1[j+1][k+1];
+				//vertices[3] = array1[j+1][k+1];
+				//vertices[2] = array1[j+1][k];
+				//vertices[7] = array2[j+1][k+1];
+				//vertices[6] = array2[j+1][k];
+				
 				vertices[2] = array1[j+1][k];
-				vertices[7] = array2[j+1][k+1];
+				vertices[3] = array1[j+1][k+1];
 				vertices[6] = array2[j+1][k];
+				vertices[7] = array2[j+1][k+1];
+
 				//if(cases == 1)cout << "marching!\n";
 				march(vertices,left + j * deltaX, bottom + k * deltaY, tris);
 				
 				//moving right
-				vertices[0] = vertices[3];
-				vertices[1] = vertices[2];
-				vertices[4] = vertices[7];
-				vertices[5] = vertices[6];
+				//vertices[0] = vertices[3];
+				//vertices[1] = vertices[2];
+				//vertices[4] = vertices[7];
+				//vertices[5] = vertices[6];
+				
+				vertices[0] = vertices[2];
+				vertices[1] = vertices[3];
+				vertices[4] = vertices[6];
+				vertices[5] = vertices[7];
 
 			}
 		}
@@ -184,11 +242,18 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		if(vert[i] != -1)
 			count++;
 	}
+	/*cout << "vert = {"; 
+	for(int j = 0; j < 8;j++){
+		cout << vert[j];
+		if(j !=7) cout << ", ";
+	}
+	cout << "}" << endl;*/
+
 
 	if(count == 0 || count == 8){
 		//case 0: No triangles in this cube, draw nothing
 		//cout << "Count = 0\n";
-		//cout << "Case 0\n";
+		//if(cases == 1)cout << "Case 0\n";
 		//if(fileDB == 1)tris<<"Case 0\n";
 	} else if(count == 1 || count == 7){
 		int neighbors[3];
@@ -230,14 +295,14 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		if(count == 2){
 			while(vert[i] == -1)
 				i++;
-			i2 = i;
+			i2 = i + 1;
 			while(vert[i2] == -1)
 				i2++;
 		}
 		else {
 			while(vert[i] != -1)
 				i++;
-			i2 = i;
+			i2 = i + 1;
 			while(vert[i2] != -1)
 				i2++;
 		}
@@ -544,12 +609,17 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				//case 9
 				if(cases == 1) cout <<"Case 9\n";
 				if(fileDB == 1)tris << "Case 9\n";
+				//cout << "Index =    {" << index[0] << ", "<< index[1] << ", " << index[2] << ", " << index[3] << "} " << endl;
+				//for(int i = 0; i < 3; i++) {
+				//	cout << "Neighbor "<< i << ": "<<  neighbors[0][i] << ", "<<  neighbors[1][i] << ", "<<  neighbors[2][i] << ", "<<  neighbors[3][i] << endl;
+				//}
 				midIndex = 0;
 				int flag = 0;
 				vertex hexMidpoints[6];
 
 				for(int j = 0; j < 4; j++) {
 					vertexToCoord(vert, current, index[j],X,Y);
+					//cout << "current = " << current.X << ", " << current.Y << ", " << current.Z << ")" << endl;
 					for(int k = 0; k < 3; k++) {
 						flag = 0;
 						for(int l = 0; l < 4; l++) {
@@ -562,14 +632,22 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 							vertexToCoord(vert,N1, neighbors[j][k],X,Y);
 							//pop midpoint
 							hexMidpoints[midIndex].X = (current.X + N1.X) / 2;
+							//cout << "hexMidpoints[midIndex] = (" << hexMidpoints[midIndex].X ;
 							hexMidpoints[midIndex].Y = (current.Y + N1.Y) / 2;
+							//cout << ", " << hexMidpoints[midIndex].Y;
 							hexMidpoints[midIndex].Z = (current.Z + N1.Z) / 2;
+							//cout << ", " << hexMidpoints[midIndex].Z << ")" << endl;
 							hexMidpoints[midIndex].color = vert[index[j]];//DCthis
+							//cout << "N1 = " << N1.X << ", " << N1.Y << ", " << N1.Z << ")" << endl;
 							//cout << midIndex << endl;
 							midIndex++;
 						}
 					}
 				}
+				//cout << "HexMidpoints: " ;
+				//for(int m = 0; m < 6; m++) { 
+				//	cout << "(" << hexMidpoints[m].X << ", "  << hexMidpoints[m].Y << ", " << hexMidpoints[m].Z << ") \n";
+				//}
 				drawHex(hexMidpoints, tris);
 				break;
 			}
@@ -753,7 +831,23 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			{
 				//case 11/14
 				if(cases == 1) cout <<"Case 11 or 14" << endl;
-				if(fileDB == 1)tris << "Case 11 or 14\n";
+				/*if(fileDB == 1)tris << "Case 11 or 14\n";
+				cout << "vert = ";
+				for(int i = 0; i < 8; i++) {
+					cout << vert[i] << ", ";
+				}
+				//cout << endl << " index = ";
+				//for(int i = 0; i < 4; i++) {
+				//	cout << index[i] << ", ";
+				//}
+				cout << endl;
+				for(int i = 0; i < 4; i++) {
+					cout << index[i] << ": ";
+					for(int j = 0; j < 3; j++) {
+						cout << neighbors[i][j] << ", ";
+					}
+					cout << endl;
+				}*/
 				int index2[4];
 				int neighbors2[4][3];
 				int nCount = 0;
@@ -762,44 +856,59 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 				for(int j = 0; j < 4; j++) {
 					nCount = 0;
 					for(int k = 0; k < 3;k++) {
-						for(int l = 0; l < 3;l++) {
-							if(neighbors[j][k] == index[l])
+						for(int l = 0; l < 4;l++) {
+							//cout << "neighbors[" << j << "][" << k << "] = " << neighbors[j][k] << ",  index[" << l << "] = " << index[l] << endl;
+							if(neighbors[j][k] == index[l]){
+								//cout << "neighbors[j][k] == index[l]" << endl;
 								nCount++;
+							}
 						}
 					}					
 					if(nCount == 1){//this places one of the vertices with only one neighbor at position 0
+						//cout << "First #0 found" << endl;
 						index2[0] = index[j];
+						//cout << "index2[0] = " << index2[0] << endl;
 						for(int k = 0; k < 3; k++) {
 							neighbors2[0][k] = neighbors[j][k];
+							//cout << "neighbors2[0][" << k << "] = "<< neighbors2[0][k] << endl;
 						}
+						//cout << "Neighbors populated" << endl;
 						break;
-					}
+					} //else if(nCount > 1) { cout << "Error\n";}
 				}
 				//second and third vertex
 				for(int h = 1; h < 4;h++) {
+					//cout << " ~vertex loop " << h << endl;
 					for(int j = 0; j < 3; j++) {
 						for(int k = 0; k < 4; k++) {
+							//cout << "neighbors2[" << h-1 << "][" << j << "] = "<< neighbors2[h-1][j] << ", index[" << k << "] = " << index[k] << endl;
 							if(neighbors2[h-1][j] == index[k]) {
 								if(h > 1) {
-									if(neighbors2[h-1][j] == index2[h-2])
+									if(neighbors2[h-1][j] == index2[h-2]){
+										//cout<< "moved backwards" << endl;
 										break;
+									}
 								}
+								//cout << "vertex #" << h << " found." << endl;
 								index2[h] = index[k];
 								for(int l = 0; l < 3; l++) {
 									neighbors2[h][l] = neighbors[k][l];
 								}
+								//cout << "Neighbors populated" << endl;
 								break;
 							}
 						}
 					}
 				}
-
 				//should not use neighbors or index below here.
+				//for(int i = 0; i < 4; i++) {
+				//	cout << index2[i] << ", ";
+				//}
+				//cout << endl;
 				vertex coord[4];
 				for(int j = 0; j < 4; j++) {
 					vertexToCoord(vert,coord[j],index2[j],X,Y);
 				}
-				
 				vertex N1;
 				vertex triangle[4][3];
 				//triangle 0
@@ -1060,7 +1169,7 @@ void drawPent(vertex v[], ofstream &tris) {
 }
 
 void drawHex(vertex v[], ofstream &tris) {
-	//cout << "hex" << endl;
+	//cout << "\nhex" << endl;
 	//This assumes that all coordinates are on the same plane
 	vertex set1[3];//temp set
 	vertex square[4];
@@ -1071,24 +1180,30 @@ void drawHex(vertex v[], ofstream &tris) {
 	//take first midpoint, find other 3 midpoints that have either same X, Y or Z coordinates
 	triangle1[0] = v[0];
 	for(int i = 1; i < 6; i++) {
+		//cout << "start of loop " << i << ", Index = "<< index << endl;
 		if(v[0].X == v[i].X || v[0].Y == v[i].Y || v[0].Z == v[i].Z) {//TODO: might need to use epsilon here
-			set1[index] = v[i];
+			if(index < 3) {set1[index] = v[i];}
+			//cout << "v[" << i << "] is element " << index << " in set1." << endl;
+			if(index > 2) {cout << "Index > 2: " << index << endl;}
 			index++;
 		}
 	}
-	index = 0;
+	//cout << index;
+	//index = 0;
 	double maxDist = 0;
 	//distinguish between the adjacent midpoints, and the far midpoint using distance.
-
+	//cout << "pre loop!"  << endl;
 	for(int i = 0; i < 3; i++) {
-		//cout << "~" << v[0].X << " " << set1[i].X << endl;
-		//cout << "~" << v[0].Y << " " << set1[i].Y << endl;
-		//cout << "~" << v[0].Z << " " << set1[i].Z << endl;
-		maxDist = max(maxDist,  sqrt(pow(v[0].X - set1[i].X,2.0) + pow(v[0].Y - set1[i].Y,2.0) + pow(v[0].Z - set1[i].Z,2.0)));
-		//cout << "--maxDist is: " << maxDist<< " -- " << sqrt(v[0].Z - set1[i].Z) << endl;
+		//cout << "~" << v[0].X ;//<< " " << set1[i].X << endl;
+		//cout << "~" << v[0].Y ;//<< " " << set1[i].Y << endl;
+		//cout << "~" << v[0].Z ;//<< " " << set1[i].Z << endl;
+		maxDist = max(maxDist,  sqrt(pow(v[0].X - set1[i].X,2) + pow(v[0].Y - set1[i].Y,2) + pow(v[0].Z - set1[i].Z,2)));
+		//cout << "--maxDist is: " << maxDist<< " -- " << pow(v[0].Z - set1[i].Z,2) << endl;
 	}
+	//cout << "Test2" << endl;
+	index = 0;
 	for(int i = 0; i < 3; i++) {
-		if (abs(maxDist - sqrt(pow(v[0].X - set1[i].X,2.0) + pow(v[0].Y - set1[i].Y,2.0) + pow(v[0].Z - set1[i].Z,2.0))) < epsilon) {
+		if (maxDist == sqrt(pow(v[0].X - set1[i].X,2) + pow(v[0].Y - set1[i].Y,2) + pow(v[0].Z - set1[i].Z,2))){//(abs(maxDist - sqrt(pow(v[0].X - set1[i].X,2) + pow(v[0].Y - set1[i].Y,2) + pow(v[0].Z - set1[i].Z,2))) < epsilon) {
 			triangle2[0] = set1[i];
 		} else {
 			triangle1[index+1] = set1[i];
@@ -1109,6 +1224,7 @@ void drawHex(vertex v[], ofstream &tris) {
 		if(flag == 0) {
 			triangle2[index+1] = v[i];
 			square[index+2] = v[i];
+			//cout << index << endl;
 			index++;
 		}
 		//cout << index << endl;
@@ -1145,7 +1261,8 @@ void findNeighbors(int neighbors[], int i) {
 	//find coords of current vertex
 	switch ( i )
 	{
-	case 0:
+		/*
+		case 0:
 		neighbors[0] = 3;
 		neighbors[1] = 1;
 		neighbors[2] = 4;
@@ -1184,6 +1301,46 @@ void findNeighbors(int neighbors[], int i) {
 		neighbors[0] = 4;
 		neighbors[1] = 6;
 		neighbors[2] = 3;
+		break;*/
+	case 0:
+		neighbors[0] = 2;
+		neighbors[1] = 1;
+		neighbors[2] = 4;
+		break;
+	case 1:
+		neighbors[0] = 0;
+		neighbors[1] = 3;
+		neighbors[2] = 5;
+		break;
+	case 2:
+		neighbors[0] = 0;
+		neighbors[1] = 3;
+		neighbors[2] = 6;
+		break;
+	case 3:
+		neighbors[0] = 1;
+		neighbors[1] = 2;
+		neighbors[2] = 7;
+		break;
+	case 4:
+		neighbors[0] = 0;
+		neighbors[1] = 5;
+		neighbors[2] = 6;
+		break;
+	case 5:
+		neighbors[0] = 1;
+		neighbors[1] = 4;
+		neighbors[2] = 7;
+		break;
+	case 6:
+		neighbors[0] = 2;
+		neighbors[1] = 4;
+		neighbors[2] = 7;
+		break;
+	case 7:
+		neighbors[0] = 3;
+		neighbors[1] = 5;
+		neighbors[2] = 6;
 		break;
 	}
 }
