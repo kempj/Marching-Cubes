@@ -12,8 +12,9 @@ double deltaZ;
 double deltaY;
 double deltaX;
 double currentZ;
-int cases = 0;//turns the case outputs on and off
+int cases = 1;//turns the case outputs on and off
 int fileDB = 0;
+int debugCases[14] = {1,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 struct vertex{
 	double X;
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
 	slice.clear();
 	//slice.open("slices/2.dat");
 	sprintf(filename,"slices/%d.dat",2);
-	//cout << "Filename = " << filename << endl;
+	//co7ut << "Filename = " << filename << endl;
 	slice.open(filename);
 	//    if(slice.is_open())
 	//	cout << filename << " opened\n" ;
@@ -136,7 +137,7 @@ int main(int argc, char *argv[])
 
 
 	//this loop reads in and operates on each slice
-	for(int i = 0; i < size; i++){
+	for(int i = 0; i < size-1; i++){
 		currentZ = front + i * deltaZ;
 		for(int j = 0; j < size; j++) {
 			getline(slice,readStr);
@@ -150,7 +151,6 @@ int main(int argc, char *argv[])
 					strLoc++;
 				}
 				l = 0;
-				//cout << "~";
 				while(strLoc <  readStr.size() && readStr.at(strLoc) != ' ') {
 					readcStr[l] = readStr.at(strLoc);
 					strLoc++;
@@ -159,51 +159,34 @@ int main(int argc, char *argv[])
 				readcStr[l] = '\0';
 				strLoc++;
 				array2[j][k] = (float)atof(readcStr);
-				
-				//slice.getline(readcStr,32,' ');
-				//cout << readcStr << " ";
 			}
 			//cout << endl;
 		}
 
 		for(int j = 0; j < size - 1; j++) {
 			//left 4 vertices
-			//vertices[0] = array1[j][1];
-			//vertices[1] = array1[j][0];
-			//vertices[4] = array2[j][1];
-			//vertices[5] = array2[j][0];
+
 
 			vertices[0] = array1[j][0];
-			vertices[1] = array1[j][1];
+			vertices[1] = array1[j+1][0];
 			vertices[4] = array2[j][0];
-			vertices[5] = array2[j][1];
+			vertices[5] = array2[j+1][0];
 
-			for(int k = 0; k < size -1; k++) {
+			for(int k = 1; k < size -1; k++) {
 				//right 4 vertices
-				//vertices[3] = array1[j+1][k+1];
-				//vertices[2] = array1[j+1][k];
-				//vertices[7] = array2[j+1][k+1];
-				//vertices[6] = array2[j+1][k];
-				
-				vertices[2] = array1[j+1][k];
-				vertices[3] = array1[j+1][k+1];
-				vertices[6] = array2[j+1][k];
-				vertices[7] = array2[j+1][k+1];
-
+				vertices[2] = array1[j][k];
+				vertices[3] = array1[j+1][k];
+				vertices[6] = array2[j][k];
+				vertices[7] = array2[j+1][k];
 				//if(cases == 1)cout << "marching!\n";
-				march(vertices,left + j * deltaX, bottom + k * deltaY, tris);
+				march(vertices,left + j * deltaX, bottom + (k-1) * deltaY, tris);
 				
-				//moving right
-				//vertices[0] = vertices[3];
-				//vertices[1] = vertices[2];
-				//vertices[4] = vertices[7];
-				//vertices[5] = vertices[6];
-				
+				//moving right			
 				vertices[0] = vertices[2];
 				vertices[1] = vertices[3];
 				vertices[4] = vertices[6];
 				vertices[5] = vertices[7];
-
+				
 			}
 		}
 		//move slice i+1 to i, load in next slice as i+1
@@ -220,7 +203,12 @@ int main(int argc, char *argv[])
 				cout << filename << " not opening" << endl;
 		
 	}
-
+	if(cases == 1){
+		for(int i = 0; i < 14; i++) {
+			if(debugCases[i] == 0)
+				cout << "case " << i << " is not used" << endl;
+		}
+	}
 }
 
 void march(float vert[], double X, double Y,  ofstream &tris) {
@@ -248,7 +236,15 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		if(j !=7) cout << ", ";
 	}
 	cout << "}" << endl;*/
-
+	if( count != 0 && count != 8){
+		
+				cout << "{";
+				for(int l = 0; l < 8; l++) {
+					cout << vert[l];
+					if(i != 7) cout << ", ";
+				}
+				cout << "}" << endl;
+	}
 
 	if(count == 0 || count == 8){
 		//case 0: No triangles in this cube, draw nothing
@@ -258,7 +254,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 	} else if(count == 1 || count == 7){
 		int neighbors[3];
 		//cout << "Count 1\n";
-		if(cases == 1) cout<<"Case 1\n";
+		if(cases == 1){
+			cout<<"Case 1\n";
+			debugCases[1] = 1;
+		}
 		if(fileDB == 1)tris << "Case1\n";
 		//case 1
 		i = 0;
@@ -273,13 +272,9 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		findNeighbors(neighbors, i);
 
 		vertexToCoord(vert, current,i,X,Y);
-        //cout<<current.X<<endl;
-        //cout<<current.Y<<endl;
-        //cout<<current.Z<<endl;
 
 		for( int c = 0; c < 3; c++)
 			vertexToCoord(vert, v[c],neighbors[c],X,Y);
-
 		drawTris(current, v, vert ,tris);
 
 	} else if(count == 2 || count == 6){
@@ -316,7 +311,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			if(neighbors[c] == i2) {
 
 				//case 2
-				if(cases == 1) cout << " -Case 2\n";
+				if(cases == 1) {
+					cout << " -Case 2\n";
+					debugCases[2] = 1;
+				}
 				if(fileDB == 1)tris << "Case2\n";
 				//for the 2 neighbors of i that aren't i2
 				// find midpoints between them and current
@@ -349,7 +347,11 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		}
 		if (neighborCount != -1){
-		if(cases == 1) cout << " -Case 3 or 4\n";
+		if(cases == 1) {
+			cout << " -Case 3 or 4\n";
+			debugCases[3] = 1;
+			debugCases[4] = 1;
+		}
 		if(fileDB == 1)tris << "Case3 or 4\n";
 			//case3 and case4 also involves only drawing 2 instances of class 1
 			//This was originally 2 separate cases determined by the number of shared neighbors
@@ -413,7 +415,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 13: //case 5
 			{
-				if(cases == 1) cout << "Case 5\n";
+				if(cases == 1) {
+					cout << "Case 5\n";
+					debugCases[5] = 1;
+				}
 				if(fileDB == 1)tris << "Case 5\n";
 				vertex pentMid[5];
 				midIndex = 0;
@@ -449,7 +454,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 2: //case 6
 			{
-			if(cases == 1) cout <<"Case 6\n";
+			if(cases == 1) {
+				cout <<"Case 6\n";
+				debugCases[6] = 1;
+			}
 			if(fileDB == 1)tris << "Case 6\n";
 				//draw triangle
 				int ssq[2];
@@ -505,7 +513,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			}
 		case 0:	//case7 (no neighbors)
 			{
-			if(cases == 1) cout <<"Case 7\n";
+			if(cases == 1) {
+				cout <<"Case 7\n";
+				debugCases[7] = 1;
+			}
 			if(fileDB == 1)tris << "Case 7\n";
 				for(int j = 0; j < 3; j++) { //for each vertex
 					for(int k = 0; k < 3; k++) {  //for each neighbor
@@ -573,7 +584,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		switch(sumCount) {
 		case 44:
 			//case 8
-			if(cases == 1) cout<<"Case 8\n";
+			if(cases == 1) {
+				cout<<"Case 8\n";
+				debugCases[8] = 1;
+			}
 			if(fileDB == 1)tris << "Case 8\n";
 			int l;
 			//if each node has exactly2 neighbors that are vertices, degree sequence {2,2,2,2}
@@ -607,7 +621,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 114:
 			{
 				//case 9
-				if(cases == 1) cout <<"Case 9\n";
+				if(cases == 1) {
+					cout <<"Case 9\n";
+					debugCases[9] = 1;
+				}
 				if(fileDB == 1)tris << "Case 9\n";
 				//cout << "Index =    {" << index[0] << ", "<< index[1] << ", " << index[2] << ", " << index[3] << "} " << endl;
 				//for(int i = 0; i < 3; i++) {
@@ -654,7 +671,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 			
 
 		case 4:
-			if(cases == 1) cout <<"Case 10\n";
+			if(cases == 1) {
+				cout <<"Case 10\n";
+				debugCases[10] = 1;
+			}
 			if(fileDB == 1)tris << "Case 10\n";
 			//case 10
 			//Notes: Only using the first array in v, or as I need it.
@@ -742,7 +762,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 
 		case 13:
 			{
-				if(cases == 1) cout <<"Case 12\n";
+				if(cases == 1) {
+					cout <<"Case 12\n";
+					debugCases[12] = 1;
+				}
 				if(fileDB == 1)tris << "Case 12\n";
 				//case 12
 				int index2[3];
@@ -813,7 +836,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 0:
 			{
 				//case 13
-				if(cases == 1) cout <<"Case 13\n";
+				if(cases == 1) {
+					cout <<"Case 13\n";
+					debugCases[13] = 1;
+				}
 				if(fileDB == 1)tris << "Case 13\n";
 				//if none of the other vertices are neighbors for the
 				for(int j = 0; j < 4; j++) { //for each vertex
@@ -830,7 +856,10 @@ void march(float vert[], double X, double Y,  ofstream &tris) {
 		case 24:
 			{
 				//case 11/14
-				if(cases == 1) cout <<"Case 11 or 14" << endl;
+				if(cases == 1) {
+					cout <<"Case 11 or 14" << endl;
+					debugCases[11] = 1;
+				}
 				/*if(fileDB == 1)tris << "Case 11 or 14\n";
 				cout << "vert = ";
 				for(int i = 0; i < 8; i++) {
@@ -1184,7 +1213,7 @@ void drawHex(vertex v[], ofstream &tris) {
 		if(v[0].X == v[i].X || v[0].Y == v[i].Y || v[0].Z == v[i].Z) {//TODO: might need to use epsilon here
 			if(index < 3) {set1[index] = v[i];}
 			//cout << "v[" << i << "] is element " << index << " in set1." << endl;
-			if(index > 2) {cout << "Index > 2: " << index << endl;}
+			if(cases == 1) {if(index > 2) {cout << "Index > 2: " << index << endl;}}
 			index++;
 		}
 	}
